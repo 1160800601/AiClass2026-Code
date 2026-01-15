@@ -8,7 +8,7 @@ from torch.utils.data import DataLoader, TensorDataset
 
 import utils
 
-USE_CUDA = False
+USE_CUDA = True
 device = torch.device("cuda" if USE_CUDA and torch.cuda.is_available() else "cpu")
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -36,9 +36,10 @@ class SimpleMLP3(nn.Module):
         super(SimpleMLP3, self).__init__()
 
         # 创建两个全连接层
-        self.fc1 = nn.Linear(1, 32)
-        self.fc2 = nn.Linear(32, 32)
-        self.fc3 = nn.Linear(32, 1)
+        self.fc1 = nn.Linear(1, 64)
+        self.fc2 = nn.Linear(64, 64)
+        self.fc3 = nn.Linear(64, 32)
+        self.fc4 = nn.Linear(32, 1)
 
     def forward(self, x):
         # 第1层全连接后使用ReLU激活函数
@@ -50,7 +51,10 @@ class SimpleMLP3(nn.Module):
         x = F.relu(x)
 
         # 第3层全连接后直接输出
-        return self.fc3(x)
+        x = self.fc3(x)
+        x = F.relu(x)
+
+        return self.fc4(x)
 
 class SimpleMLP4(nn.Module):
     def __init__(self):
@@ -77,10 +81,12 @@ class SimpleMLP666(nn.Module):
     def __init__(self):
         super(SimpleMLP666, self).__init__()
 
-        # 创建两个全连接层
-        self.fc1 = nn.Linear(1, 32)
-        self.fc2 = nn.Linear(32, 32)
-        self.fc3 = nn.Linear(32, 1)
+        # 创建5个全连接层
+        self.fc1 = nn.Linear(1, 128)
+        self.fc2 = nn.Linear(128, 128)
+        self.fc3 = nn.Linear(128, 128)
+        self.fc4 = nn.Linear(128, 128)
+        self.fc5 = nn.Linear(128, 1)
 
     def forward(self, x):
         # 第1层全连接后使用ReLU激活函数
@@ -90,9 +96,17 @@ class SimpleMLP666(nn.Module):
         # 第2层全连接后使用ReLU激活函数
         x = self.fc2(x)
         x = F.relu(x)
+        
+        # 第3层全连接后使用ReLU激活函数
+        x = self.fc3(x)
+        x = F.relu(x)
+        
+        # 第4层全连接后使用ReLU激活函数
+        x = self.fc4(x)
+        x = F.relu(x)
 
-        # 第3层全连接后直接输出
-        return self.fc3(x)
+        # 第5层全连接后直接输出
+        return self.fc5(x)
 
 def fit_data3():
     # 在这里读入不同的 csv 文件
