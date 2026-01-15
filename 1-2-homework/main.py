@@ -89,21 +89,21 @@ class SimpleMLP666(nn.Module):
         self.fc5 = nn.Linear(128, 1)
 
     def forward(self, x):
-        # 第1层全连接后使用ReLU激活函数
+        # 第1层全连接后使用tanh激活函数
         x = self.fc1(x)
-        x = F.relu(x)
+        x = F.tanh(x)
 
-        # 第2层全连接后使用ReLU激活函数
+        # 第2层全连接后使用tanh激活函数
         x = self.fc2(x)
-        x = F.relu(x)
+        x = F.tanh(x)
         
         # 第3层全连接后使用ReLU激活函数
         x = self.fc3(x)
-        x = F.relu(x)
+        x = F.tanh(x)
         
         # 第4层全连接后使用ReLU激活函数
         x = self.fc4(x)
-        x = F.relu(x)
+        x = F.tanh(x)
 
         # 第5层全连接后直接输出
         return self.fc5(x)
@@ -225,12 +225,12 @@ def fit_data666():
     X, Y = utils.read_csv_data(os.path.join(BASE_DIR, 'data_666.csv'))
 
     # Standardize x, y
-    x_mean = X.mean(axis=0, keepdims=True)
-    x_std = X.std(axis=0, keepdims=True) + 1e-8
-    y_mean = Y.mean(axis=0, keepdims=True)
-    y_std = Y.std(axis=0, keepdims=True) + 1e-8
-    X = (X - x_mean) / x_std
-    Y = (Y - y_mean) / y_std
+    # x_mean = X.mean(axis=0, keepdims=True)
+    # x_std = X.std(axis=0, keepdims=True) + 1e-8
+    # y_mean = Y.mean(axis=0, keepdims=True)
+    # y_std = Y.std(axis=0, keepdims=True) + 1e-8
+    # X = (X - x_mean) / x_std
+    # Y = (Y - y_mean) / y_std
 
     X = torch.tensor(X, dtype=torch.float32)
     Y = torch.tensor(Y, dtype=torch.float32)
@@ -241,8 +241,8 @@ def fit_data666():
 
     # 模型、损失函数、优化器
     model = SimpleMLP666().to(device)
-    criterion = nn.MSELoss()
-    optimizer = optim.Adam(model.parameters(), lr=0.01)
+    criterion = nn.SmoothL1Loss()
+    optimizer = optim.Adam(model.parameters(), lr=0.001)
 
     # 创建数据集和加载器
     X = X.to(device)
@@ -253,7 +253,7 @@ def fit_data666():
 
     # 训练模型
     start_time = time.perf_counter()
-    epochs = 200
+    epochs = 1000
     for epoch in range(epochs):
         epoch_loss = 0
 
@@ -346,5 +346,5 @@ def demo():
 
 if __name__ == '__main__':
     # fit_data3()
-    # fit_data4()
-    fit_data666()
+    fit_data4()
+    # fit_data666()
