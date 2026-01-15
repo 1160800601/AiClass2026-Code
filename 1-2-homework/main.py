@@ -224,6 +224,14 @@ def fit_data666():
     # 在这里读入不同的 csv 文件
     X, Y = utils.read_csv_data(os.path.join(BASE_DIR, 'data_666.csv'))
 
+    # Standardize x, y
+    x_mean = X.mean(axis=0, keepdims=True)
+    x_std = X.std(axis=0, keepdims=True) + 1e-8
+    y_mean = Y.mean(axis=0, keepdims=True)
+    y_std = Y.std(axis=0, keepdims=True) + 1e-8
+    X = (X - x_mean) / x_std
+    Y = (Y - y_mean) / y_std
+
     X = torch.tensor(X, dtype=torch.float32)
     Y = torch.tensor(Y, dtype=torch.float32)
     print(X.shape, Y.shape)
