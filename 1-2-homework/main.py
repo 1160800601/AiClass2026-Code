@@ -7,7 +7,8 @@ from torch.utils.data import DataLoader, TensorDataset
 
 import utils
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+USE_CUDA = True
+device = torch.device("cuda" if USE_CUDA and torch.cuda.is_available() else "cpu")
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
