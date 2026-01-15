@@ -1,4 +1,5 @@
 import os
+import time
 import torch
 from torch import nn
 import torch.nn.functional as F
@@ -7,7 +8,7 @@ from torch.utils.data import DataLoader, TensorDataset
 
 import utils
 
-USE_CUDA = True
+USE_CUDA = False
 device = torch.device("cuda" if USE_CUDA and torch.cuda.is_available() else "cpu")
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -214,10 +215,10 @@ def fit_data666():
     print(X.shape, Y.shape)
 
     # 根据特征维度，绘制 2D 或 3D 散点图
-    utils.draw_2d_scatter(X, Y)
+    # utils.draw_2d_scatter(X, Y)
 
     # 模型、损失函数、优化器
-    model = SimpleMLP3().to(device)
+    model = SimpleMLP666().to(device)
     criterion = nn.MSELoss()
     optimizer = optim.Adam(model.parameters(), lr=0.01)
 
@@ -229,6 +230,7 @@ def fit_data666():
     data_loader = DataLoader(dataset, batch_size=16, shuffle=True)
 
     # 训练模型
+    start_time = time.perf_counter()
     epochs = 200
     for epoch in range(epochs):
         epoch_loss = 0
@@ -252,6 +254,8 @@ def fit_data666():
         print(f'Epoch {epoch}, Loss: {epoch_loss / len(data_loader)}')
 
     # 查看预测效果
+    elapsed = time.perf_counter() - start_time
+    print(f'Training time (fit_data666) [cuda={USE_CUDA}]: {elapsed:.4f}s')
     predicted = model(X)
     utils.draw_2d_scatter(
         X.detach().cpu().numpy(),
