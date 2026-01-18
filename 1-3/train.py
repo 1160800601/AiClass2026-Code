@@ -19,7 +19,6 @@ g_num_epochs = 128
 g_lr = 0.001
 g_batch_size = 256
 g_use_cuda = 0
-g_dropout = 0.5
 
 # g_hidden_dim = 16
 # g_hidden_num = 2
@@ -56,7 +55,7 @@ def main() -> None:
     train_loader = DataLoader(train_dataset, batch_size=g_batch_size, shuffle=True)
     
     # define model
-    model = SimpleMLP(dropout=g_dropout).to(device)
+    model = SimpleMLP().to(device)
     optimizer = optim.Adam(model.parameters(), lr=g_lr)
     loss = nn.BCELoss()
 
