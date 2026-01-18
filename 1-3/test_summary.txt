@@ -1,0 +1,71 @@
+Rows: 8693, Cols: 14
+
+=== PassengerId ===
+missing: False
+unique_values: 8693
+
+=== HomePlanet ===
+missing: True
+unique_values: 4
+
+=== CryoSleep ===
+missing: True
+unique_values: 3
+
+=== Cabin ===
+missing: True
+unique_values: 6561
+
+=== Destination ===
+missing: True
+unique_values: 4
+
+=== Age ===
+missing: True
+min: 0.0
+max: 79.0
+mean: 28.82793046746535
+
+=== VIP ===
+missing: True
+unique_values: 3
+
+=== RoomService ===
+missing: True
+min: 0.0
+max: 14327.0
+mean: 224.687617481203
+
+=== FoodCourt ===
+missing: True
+min: 0.0
+max: 29813.0
+mean: 458.07720329024676
+
+=== ShoppingMall ===
+missing: True
+min: 0.0
+max: 23492.0
+mean: 173.72916912197996
+
+=== Spa ===
+missing: True
+min: 0.0
+max: 22408.0
+mean: 311.1387779083431
+
+=== VRDeck ===
+missing: True
+min: 0.0
+max: 24133.0
+mean: 304.8547912992357
+
+=== Name ===
+missing: True
+unique_values: 8474
+
+=== Transported ===
+missing: False
+min: False
+max: True
+mean: 0.5036236051995858
