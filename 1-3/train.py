@@ -12,13 +12,14 @@ from tensorboardX import SummaryWriter
 from mlp import SimpleMLP
 
 # tensorboard 记录的文件夹名称
-g_run_name = "02"
+g_run_name = "04"
 
 # 超参数
-g_num_epochs = 200
+g_num_epochs = 128
 g_lr = 0.001
-g_batch_size = 64
+g_batch_size = 256
 g_use_cuda = 0
+g_dropout = 0.5
 
 # g_hidden_dim = 16
 # g_hidden_num = 2
@@ -55,7 +56,7 @@ def main() -> None:
     train_loader = DataLoader(train_dataset, batch_size=g_batch_size, shuffle=True)
     
     # define model
-    model = SimpleMLP().to(device)
+    model = SimpleMLP(dropout=g_dropout).to(device)
     optimizer = optim.Adam(model.parameters(), lr=g_lr)
     loss = nn.BCELoss()
 
