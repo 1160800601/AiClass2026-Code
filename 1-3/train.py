@@ -12,7 +12,7 @@ from tensorboardX import SummaryWriter
 from mlp import SimpleMLP
 
 # tensorboard 记录的文件夹名称
-g_run_name = "04"
+g_run_name = "05"
 
 # 超参数
 g_num_epochs = 128
@@ -23,6 +23,7 @@ g_use_cuda = 0
 # g_hidden_dim = 16
 # g_hidden_num = 2
 g_early_stop_delta = 1e-4
+g_weight_decay = 1e-3
 g_early_stop_patience = 10
 
 
@@ -56,7 +57,7 @@ def main() -> None:
     
     # define model
     model = SimpleMLP().to(device)
-    optimizer = optim.Adam(model.parameters(), lr=g_lr)
+    optimizer = optim.Adam(model.parameters(), lr=g_lr, weight_decay=g_weight_decay)
     loss = nn.BCELoss()
 
     # training

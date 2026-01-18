@@ -8,3 +8,5 @@
 04: 训练加入dropout，调整batchsize
     val acc: 0.79
     40轮后过拟合, val acc下降
+05: weight decay
+    val acc无提升
