@@ -33,6 +33,9 @@ def main() -> None:
     df_train_target = df_train["Transported"]
     df_val_features = df_val.drop(drop_cols, axis=1)
     df_val_target = df_val["Transported"]
+    
+    n_train = df_train.shape[0]
+    n_val = df_val.shape[0]
 
     print("\n======== 将数据转换为 PyTorch Tensor")
     X_train = torch.tensor(df_train_features.values, dtype=torch.float32)
@@ -51,14 +54,40 @@ def main() -> None:
     optimizer = optim.Adam(model.parameters(), lr=g_lr)
     loss = nn.BCELoss()
 
-
-
+    # training
+    writer = SummaryWriter(f'runs/{g_run_name}')
+    for epoch in range(g_num_epochs):
+        model.train()
+        
+        epoch_loss = 0
+        correct_num = 0
+        step = 0
+        for X_bacth, y_batch in train_loader:
+            y_pred = model(X_bacth)
+            
+            correct_num += torch.sum((y_pred > 0.5) == y_batch).item()
+            
+            l = loss(y_pred, y_batch)
+            
+            optimizer.zero_grad()
+            l.backward()
+            optimizer.step()
+            
+            step += 1
+        
+        model.eval()
+        with torch.no_grad():
+            y_val_pred = model(X_val)
+            val_correct_num = torch.sum((y_val_pred > 0.5) == y_val).item()
+            val_accuracy = val_correct_num / n_val
+        
+        train_accuracy = correct_num / n_train
 
 
     # save model
     model_dir = base_dir / "models"
     model_dir.mkdir(parents=True, exist_ok=True)
-    model_path = model_dir / "mlp.pt"
+    model_path = model_dir / f"mlp_{g_run_name}.pt"
     torch.save(model.state_dict(), model_path)
     print(f"saved model to {model_path}")
 
