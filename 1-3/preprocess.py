@@ -26,6 +26,7 @@ def preprocess(val_ratio=0.2, random_state=42):
     print("\n================================== read data")
     df_train = pd.read_csv("dataset/train.csv")
     df_test = pd.read_csv("dataset/test.csv")
+    test_passenger_id = df_test["PassengerId"].copy()
 
     # 1) combine datasets
     print("\n================================== combine data")
@@ -41,6 +42,7 @@ def preprocess(val_ratio=0.2, random_state=42):
     print("\n================================== split train/test")
     df_train_processed = df_feat.iloc[: len(df_train)].copy()
     df_test_processed = df_feat.iloc[len(df_train) :].copy()
+    df_test_processed["PassengerId"] = test_passenger_id.values
 
     # 4) split train/val
     print("\n================================== split train/val")
@@ -63,6 +65,10 @@ def preprocess2(val_ratio=0.2, random_state=42, save_suffix="_v2"):
     df_train = pd.read_csv(base_dir / "train_processed_basic.csv")
     df_val = pd.read_csv(base_dir / "val_processed_basic.csv")
     df_test = pd.read_csv(base_dir / "test_processed_basic.csv")
+    test_passenger_id = None
+    if "PassengerId" in df_test.columns:
+        test_passenger_id = df_test["PassengerId"].copy()
+        df_test = df_test.drop(columns=["PassengerId"])
 
     print("\n================================== combine data")
     df_feat = pd.concat([df_train, df_val, df_test], ignore_index=True)
@@ -70,7 +76,7 @@ def preprocess2(val_ratio=0.2, random_state=42, save_suffix="_v2"):
     # 1) add missing flags
     print("\n================================== add missing flags")
     for col in df_feat.columns:
-        if col == "Transported":
+        if col in ["Transported", "PassengerId"]:
             continue
         df_feat[f"{col}_is_missing"] = df_feat[col].isna().astype(int)
 
@@ -137,6 +143,8 @@ def preprocess2(val_ratio=0.2, random_state=42, save_suffix="_v2"):
     df_train_processed = df_feat.iloc[:n_train].copy()
     df_val_processed = df_feat.iloc[n_train:n_train + n_val].copy()
     df_test_processed = df_feat.iloc[n_train + n_val:].copy()
+    if test_passenger_id is not None:
+        df_test_processed["PassengerId"] = test_passenger_id.values
 
     # 6) move Transported to last column in train/val
     if "Transported" in df_train_processed.columns:
@@ -174,6 +182,6 @@ def save_data(
 
 
 if __name__ == "__main__":
-    # train_df, val_df, test_df = preprocess(val_ratio=0.2, random_state=42)
-    # save_data(train_df, val_df, test_df)
+    train_df, val_df, test_df = preprocess(val_ratio=0.2, random_state=42)
+    save_data(train_df, val_df, test_df)
     preprocess2(val_ratio=0.2, random_state=42, save_suffix="_v2")

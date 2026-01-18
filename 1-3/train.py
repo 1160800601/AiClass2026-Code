@@ -26,6 +26,7 @@ g_early_stop_delta = 1e-4
 g_weight_decay = 3e-4
 g_early_stop_patience = 10
 g_val_threshold = 0.5
+g_save_acc_threshold = 0.795
 
 
 def main() -> None:
@@ -109,6 +110,13 @@ def main() -> None:
         writer.add_scalar('train/accuracy', train_accuracy, epoch)
         writer.add_scalar('train/loss', epoch_loss, epoch)
         writer.add_scalar('val/accuracy', val_accuracy, epoch)
+
+        if val_accuracy >= g_save_acc_threshold:
+            model_dir = base_dir / "models"
+            model_dir.mkdir(parents=True, exist_ok=True)
+            model_path = model_dir / f"mlp_acc{val_accuracy:.4f}_ep{epoch}.pt"
+            torch.save(model.state_dict(), model_path)
+            print(f"saved model to {model_path}")
 
         if prev_epoch_loss is not None and abs(prev_epoch_loss - epoch_loss) < g_early_stop_delta:
             stable_epochs += 1
