@@ -1,8 +1,23 @@
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
+from torch import nn
 
-# 定义一个简单的多层感知机模型
-# pytorch 中所有自定义的神经网络类，都要继承 nn.Module
+
 class SimpleMLP(nn.Module):
-    # TODO: 开始你的表演，请不要直接复制代码！
+    def __init__(self) -> None:
+        super().__init__()
+        input_dim = 41
+        hidden_dim = 192
+        hidden_layers = 5
+
+        layers = []
+        dim = input_dim
+        for _ in range(hidden_layers):
+            layers.append(nn.Linear(dim, hidden_dim))
+            layers.append(nn.ReLU())
+            dim = hidden_dim
+        layers.append(nn.Linear(dim, 1))
+        layers.append(nn.Sigmoid())
+        self.net = nn.Sequential(*layers)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return self.net(x)
