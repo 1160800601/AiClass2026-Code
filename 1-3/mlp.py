@@ -6,8 +6,8 @@ class SimpleMLP(nn.Module):
     def __init__(self) -> None:
         super().__init__()
         input_dim = 40
-        hidden_dim = 192
-        hidden_layers = 5
+        hidden_dim = 256
+        hidden_layers = 4
 
         layers = []
         dim = input_dim

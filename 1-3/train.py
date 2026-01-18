@@ -12,19 +12,20 @@ from tensorboardX import SummaryWriter
 from mlp import SimpleMLP
 
 # tensorboard 记录的文件夹名称
-g_run_name = "05"
+g_run_name = "08"
 
 # 超参数
 g_num_epochs = 128
 g_lr = 0.001
 g_batch_size = 256
-g_use_cuda = 0
+g_use_cuda = 1
 
 # g_hidden_dim = 16
 # g_hidden_num = 2
 g_early_stop_delta = 1e-4
-g_weight_decay = 1e-3
+g_weight_decay = 3e-4
 g_early_stop_patience = 10
+g_val_threshold = 0.5
 
 
 def main() -> None:
@@ -76,7 +77,7 @@ def main() -> None:
             y_batch = y_batch.to(device)
             y_pred = model(X_bacth)
             
-            correct_num += torch.sum((y_pred > 0.5) == y_batch).item()
+            correct_num += torch.sum((y_pred > g_val_threshold) == y_batch).item()
             
             l = loss(y_pred, y_batch)
             epoch_loss += l.item()
@@ -95,7 +96,7 @@ def main() -> None:
             X_val_device = X_val.to(device)
             y_val_device = y_val.to(device)
             y_val_pred = model(X_val_device)
-            val_correct_num = torch.sum((y_val_pred > 0.5) == y_val_device).item()
+            val_correct_num = torch.sum((y_val_pred > g_val_threshold) == y_val_device).item()
             val_accuracy = val_correct_num / n_val
         
         train_accuracy = correct_num / n_train
