@@ -1,4 +1,7 @@
 from pathlib import Path
+import json
+
+import numpy as np
 
 import pandas as pd
 from sklearn.model_selection import train_test_split
@@ -54,66 +57,94 @@ def preprocess(val_ratio=0.2, random_state=42):
     return df_train_final, df_val_processed, df_test_processed
 
 
-def preprocess2(val_ratio=0.2, random_state=42):
-    print("\n================================== read data")
-    df_train = pd.read_csv("1-3/dataset/train.csv")
-    df_test = pd.read_csv("1-3/dataset/test.csv")
-    print(df_train.info())
-    print(df_test.info())
+def preprocess2(val_ratio=0.2, random_state=42, save_suffix="_v2"):
+    print("\n================================== read basic data")
+    base_dir = Path("1-3/pre_processed_dataset/dataset")
+    df_train = pd.read_csv(base_dir / "train_processed_basic.csv")
+    df_val = pd.read_csv(base_dir / "val_processed_basic.csv")
+    df_test = pd.read_csv(base_dir / "test_processed_basic.csv")
 
-    # 1) combine datasets
     print("\n================================== combine data")
-    df_feat = pd.concat([df_train, df_test], ignore_index=True)
-    df_feat = df_feat.drop(["PassengerId", "Name"], axis=1)
-    print(df_feat.info())
-    print(df_feat)
+    df_feat = pd.concat([df_train, df_val, df_test], ignore_index=True)
 
-    # 2) split Cabin column
-    print("\n================================== split Cabin")
-    df_feat[["Deck", "Num", "Side"]] = df_feat["Cabin"].str.split("/", expand=True)
-    df_feat = df_feat.drop(["Cabin"], axis=1)
-    print(df_feat.info())
+    # 1) add missing flags
+    print("\n================================== add missing flags")
+    for col in df_feat.columns:
+        if col == "Transported":
+            continue
+        df_feat[f"{col}_is_missing"] = df_feat[col].isna().astype(int)
 
-    # 3) numeric features
-    print("\n================================== numeric features")
-    num_cols = df_feat.columns[df_feat.dtypes != "object"]
-    df_feat[num_cols] = df_feat[num_cols].apply(lambda x: (x - x.mean()) / x.std())
-    df_feat[num_cols] = df_feat[num_cols].fillna(0)
-    print(df_feat.info())
-    print(df_feat.describe())
+    # 2) one-hot encoding
+    print("\n================================== one-hot encoding")
+    onehot_cols = ["HomePlanet", "CryoSleep", "Destination", "VIP", "Deck", "Side"]
+    existing_onehot = [c for c in onehot_cols if c in df_feat.columns]
+    onehot_maps = {}
+    for col in existing_onehot:
+        onehot_maps[col] = (
+            df_feat[col]
+            .dropna()
+            .astype(str)
+            .sort_values()
+            .unique()
+            .tolist()
+        )
+    df_feat = pd.get_dummies(df_feat, columns=existing_onehot, dummy_na=False)
 
-    # 4) categorical features
-    print("\n================================== categorical features")
-    cate_cols = df_feat.columns[df_feat.dtypes == "object"]
-    df_feat[cate_cols] = df_feat[cate_cols].apply(lambda x: pd.Categorical(x).codes)
-    print(df_feat.info())
-    print(df_feat)
+    maps_dir = Path("1-3/pre_processed_dataset/mappings")
+    maps_dir.mkdir(parents=True, exist_ok=True)
+    maps_path = maps_dir / "onehot_maps.json"
+    maps_path.write_text(json.dumps(onehot_maps, ensure_ascii=True, indent=2), encoding="utf-8")
 
-    # 5) split train/test
-    print("\n================================== split train/test")
-    df_train_processed = df_feat.iloc[: len(df_train)].copy()
-    df_test_processed = df_feat.iloc[len(df_train) :].copy()
-    df_train_processed["PassengerId"] = df_train["PassengerId"].values
-    df_test_processed["PassengerId"] = df_test["PassengerId"].values
-    print(df_train_processed.info())
-    print(df_train_processed)
-    print(df_test_processed.info())
-    print(df_test_processed)
+    # 3) min-max scale Age and Num
+    print("\n================================== min-max scale Age/Num")
+    if "Num" in df_feat.columns:
+        df_feat["Num"] = pd.to_numeric(df_feat["Num"], errors="coerce")
+    for col in ["Age", "Num"]:
+        if col not in df_feat.columns:
+            continue
+        col_min = df_feat[col].min(skipna=True)
+        col_max = df_feat[col].max(skipna=True)
+        if pd.notna(col_min) and pd.notna(col_max) and col_max != col_min:
+            df_feat[col] = (df_feat[col] - col_min) / (col_max - col_min)
+        else:
+            df_feat[col] = 0
+        df_feat[col] = df_feat[col].fillna(0)
 
-    # 6) split train/val
-    print("\n================================== split train/val")
-    df_train_final, df_val_processed = train_test_split(
-        df_train_processed,
-        test_size=val_ratio,
-        random_state=random_state,
-        shuffle=True,
-    )
-    df_train_final = df_train_final.reset_index(drop=True)
-    df_val_processed = df_val_processed.reset_index(drop=True)
-    print(f"train size {len(df_train_final)}, val size {len(df_val_processed)}")
-    print(f"val ratio {val_ratio * 100:.1f}%")
+    # 4) log1p + standardize expenses
+    print("\n================================== log1p + standardize expenses")
+    expense_cols = ["RoomService", "FoodCourt", "ShoppingMall", "Spa", "VRDeck"]
+    for col in expense_cols:
+        if col not in df_feat.columns:
+            continue
+        series = pd.to_numeric(df_feat[col], errors="coerce")
+        series = series.fillna(0)
+        series = np.log1p(series)
+        mean = series.mean()
+        std = series.std()
+        if pd.notna(std) and std != 0:
+            series = (series - mean) / std
+        else:
+            series = 0
+        df_feat[col] = pd.Series(series).fillna(0)
 
-    return df_train_final, df_val_processed, df_test_processed
+    # 5) split back to train/val/test
+    print("\n================================== split datasets")
+    n_train = len(df_train)
+    n_val = len(df_val)
+    df_train_processed = df_feat.iloc[:n_train].copy()
+    df_val_processed = df_feat.iloc[n_train:n_train + n_val].copy()
+    df_test_processed = df_feat.iloc[n_train + n_val:].copy()
+
+    # 6) move Transported to last column in train/val
+    if "Transported" in df_train_processed.columns:
+        cols = [c for c in df_train_processed.columns if c != "Transported"] + ["Transported"]
+        df_train_processed = df_train_processed[cols]
+        df_val_processed = df_val_processed[cols]
+
+    if save_suffix:
+        save_data(df_train_processed, df_val_processed, df_test_processed, suffix=save_suffix)
+
+    return df_train_processed, df_val_processed, df_test_processed
 
 
 def save_data(
@@ -136,5 +167,6 @@ def save_data(
 
 
 if __name__ == "__main__":
-    train_df, val_df, test_df = preprocess(val_ratio=0.2, random_state=42)
-    save_data(train_df, val_df, test_df)
+    # train_df, val_df, test_df = preprocess(val_ratio=0.2, random_state=42)
+    # save_data(train_df, val_df, test_df)
+    preprocess2(val_ratio=0.2, random_state=42, save_suffix="_v2")
