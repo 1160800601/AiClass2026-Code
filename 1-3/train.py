@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import pandas as pd
 import numpy as np
 import torch
@@ -22,15 +24,17 @@ hidden_num = 2
 def main():
     # 读入处理后的数据
     print('\n======== 读入处理后的数据')
-    df_train = pd.read_csv('1-3/dataset/train_processed.csv')
-    df_val = pd.read_csv('1-3/dataset/val_processed.csv')
-    df_test = pd.read_csv('1-3/dataset/test_processed.csv')
+    base_dir = Path(__file__).resolve().parent
+    df_train = pd.read_csv(base_dir / 'pre_processed_dataset/dataset/train_processed_v2.csv')
+    df_val = pd.read_csv(base_dir / 'pre_processed_dataset/dataset/val_processed_v2.csv')
+    df_test = pd.read_csv(base_dir / 'pre_processed_dataset/dataset/test_processed_v2.csv')
     
-    df_train_features = df_train.drop(['Transported', 'PassengerId'], axis=1)
+    drop_cols = [c for c in ['Transported', 'PassengerId'] if c in df_train.columns]
+    df_train_features = df_train.drop(drop_cols, axis=1)
     df_train_target = df_train['Transported']
-    df_val_features = df_val.drop(['Transported', 'PassengerId'], axis=1)
+    df_val_features = df_val.drop(drop_cols, axis=1)
     df_val_target = df_val['Transported']
-    df_test_features = df_test.drop(['Transported', 'PassengerId'], axis=1)
+    df_test_features = df_test.drop(drop_cols, axis=1)
     print(df_train_features)
     print(df_train_target)
     
@@ -54,7 +58,7 @@ def main():
     # 保存到 CSV 文件
     sub = pd.DataFrame({'PassengerId': df_test['PassengerId'], 'Transported': y_pred})
     print(sub)
-    sub.to_csv('1-3/submission.csv', index=False)
+    sub.to_csv(base_dir / 'submission.csv', index=False)
 
 
 if __name__ == '__main__':

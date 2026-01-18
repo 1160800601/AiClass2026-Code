@@ -9,8 +9,8 @@ from sklearn.model_selection import train_test_split
 
 def preprocess1():
     print("\n================================== read data")
-    df_train = pd.read_csv("1-3/dataset/train.csv")
-    df_test = pd.read_csv("1-3/dataset/test.csv")
+    df_train = pd.read_csv("dataset/train.csv")
+    df_test = pd.read_csv("dataset/test.csv")
     print(df_train.info())
     print(df_test.info())
 
@@ -24,8 +24,8 @@ def preprocess1():
 
 def preprocess(val_ratio=0.2, random_state=42):
     print("\n================================== read data")
-    df_train = pd.read_csv("1-3/dataset/train.csv")
-    df_test = pd.read_csv("1-3/dataset/test.csv")
+    df_train = pd.read_csv("dataset/train.csv")
+    df_test = pd.read_csv("dataset/test.csv")
 
     # 1) combine datasets
     print("\n================================== combine data")
@@ -59,7 +59,7 @@ def preprocess(val_ratio=0.2, random_state=42):
 
 def preprocess2(val_ratio=0.2, random_state=42, save_suffix="_v2"):
     print("\n================================== read basic data")
-    base_dir = Path("1-3/pre_processed_dataset/dataset")
+    base_dir = Path("pre_processed_dataset/dataset")
     df_train = pd.read_csv(base_dir / "train_processed_basic.csv")
     df_val = pd.read_csv(base_dir / "val_processed_basic.csv")
     df_test = pd.read_csv(base_dir / "test_processed_basic.csv")
@@ -89,8 +89,11 @@ def preprocess2(val_ratio=0.2, random_state=42, save_suffix="_v2"):
             .tolist()
         )
     df_feat = pd.get_dummies(df_feat, columns=existing_onehot, dummy_na=False)
+    bool_cols = df_feat.select_dtypes(include=["bool"]).columns
+    if len(bool_cols) > 0:
+        df_feat[bool_cols] = df_feat[bool_cols].astype(int)
 
-    maps_dir = Path("1-3/pre_processed_dataset/mappings")
+    maps_dir = Path("pre_processed_dataset/mappings")
     maps_dir.mkdir(parents=True, exist_ok=True)
     maps_path = maps_dir / "onehot_maps.json"
     maps_path.write_text(json.dumps(onehot_maps, ensure_ascii=True, indent=2), encoding="utf-8")
@@ -141,6 +144,10 @@ def preprocess2(val_ratio=0.2, random_state=42, save_suffix="_v2"):
         df_train_processed = df_train_processed[cols]
         df_val_processed = df_val_processed[cols]
 
+    bool_cols = df_feat.select_dtypes(include=["bool"]).columns
+    if len(bool_cols) > 0:
+        df_feat[bool_cols] = df_feat[bool_cols].astype(int)
+
     if save_suffix:
         save_data(df_train_processed, df_val_processed, df_test_processed, suffix=save_suffix)
 
@@ -153,7 +160,7 @@ def save_data(
     df_test: pd.DataFrame,
     suffix: str = "_basic",
 ):
-    out_dir = Path("1-3/pre_processed_dataset/dataset")
+    out_dir = Path("pre_processed_dataset/dataset")
     out_dir.mkdir(parents=True, exist_ok=True)
     train_path = out_dir / f"train_processed{suffix}.csv"
     val_path = out_dir / f"val_processed{suffix}.csv"
