@@ -5,7 +5,7 @@ from torch import nn
 class SimpleMLP(nn.Module):
     def __init__(self) -> None:
         super().__init__()
-        input_dim = 41
+        input_dim = 40
         hidden_dim = 192
         hidden_layers = 5
 

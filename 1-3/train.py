@@ -14,12 +14,14 @@ from mlp import SimpleMLP
 g_run_name = "01"
 
 # 超参数
-g_num_epochs = 50
+g_num_epochs = 200
 g_lr = 0.001
 g_batch_size = 64
 
-g_hidden_dim = 16
-g_hidden_num = 2
+# g_hidden_dim = 16
+# g_hidden_num = 2
+g_early_stop_delta = 1e-2
+g_early_stop_patience = 10
 
 
 def main() -> None:
@@ -56,6 +58,8 @@ def main() -> None:
 
     # training
     writer = SummaryWriter(f'runs/{g_run_name}')
+    prev_epoch_loss = None
+    stable_epochs = 0
     for epoch in range(g_num_epochs):
         model.train()
         
@@ -68,12 +72,16 @@ def main() -> None:
             correct_num += torch.sum((y_pred > 0.5) == y_batch).item()
             
             l = loss(y_pred, y_batch)
+            epoch_loss += l.item()
             
             optimizer.zero_grad()
             l.backward()
             optimizer.step()
             
             step += 1
+
+        if step > 0:
+            epoch_loss = epoch_loss / step
         
         model.eval()
         with torch.no_grad():
@@ -82,12 +90,27 @@ def main() -> None:
             val_accuracy = val_correct_num / n_val
         
         train_accuracy = correct_num / n_train
+        print(f'Epoch: {epoch}, Train Loss: {epoch_loss:.4f}, Train Acc: {train_accuracy:.4f}, Val Acc: {val_accuracy:.4f}')
+        writer.add_scalar('train/accuracy', train_accuracy, epoch)
+        writer.add_scalar('train/loss', epoch_loss, epoch)
+        writer.add_scalar('val/accuracy', val_accuracy, epoch)
+
+        if prev_epoch_loss is not None and abs(prev_epoch_loss - epoch_loss) < g_early_stop_delta:
+            stable_epochs += 1
+        else:
+            stable_epochs = 0
+        prev_epoch_loss = epoch_loss
+
+        if stable_epochs >= g_early_stop_patience:
+            print(f"early stop: loss change < {g_early_stop_delta} for {g_early_stop_patience} epochs")
+            break
+
 
 
     # save model
     model_dir = base_dir / "models"
     model_dir.mkdir(parents=True, exist_ok=True)
-    model_path = model_dir / f"mlp_{g_run_name}.pt"
+    model_path = model_dir / "mlp.pt"
     torch.save(model.state_dict(), model_path)
     print(f"saved model to {model_path}")
 
