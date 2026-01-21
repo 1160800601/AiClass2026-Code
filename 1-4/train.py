@@ -14,8 +14,8 @@ from preprocess import preprocess
 import utils
 
 # TensorBoard log directory name.
-# run_name = 'mlp01'
-run_name = 'cnn01'
+run_name = 'mlp02'
+# run_name = 'cnn01'
 
 # Hyperparameters.
 g_num_epochs = 20
@@ -27,8 +27,8 @@ input_dim = 28 * 28
 hidden_dim = 16
 hidden_num = 2
 
-# model_flag = 0 # mlp
-model_flag = 1 # cnn
+model_flag = 0 # mlp
+# model_flag = 1 # cnn
 
 
 def main():

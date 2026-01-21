@@ -9,19 +9,16 @@ class SimpleMLP(nn.Module):
     def __init__(self) -> None:
         super().__init__()
         input_dim = 28 * 28
-        hidden_dim = 28 * 28 * 2
-        hidden_layers = 3
         output_dim = 10
 
         layers = []
         dim = input_dim
-        for _ in range(hidden_layers):
+        for hidden_dim in (256, 128):
             layers.append(nn.Linear(dim, hidden_dim))
             layers.append(nn.ReLU())
-            layers.append(nn.Dropout(p=0.5))
+            layers.append(nn.Dropout(p=0.2))
             dim = hidden_dim
         layers.append(nn.Linear(dim, output_dim))
-        layers.append(nn.Sigmoid())
         self.net = nn.Sequential(*layers)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
