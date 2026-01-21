@@ -6,3 +6,5 @@
 1-3/runs/
 **/runs/
 *.csv
+*.docx
+~$*
