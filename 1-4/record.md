@@ -1,3 +1,5 @@
+![alt text](image-7.png)
+
 BASELINE:
     MLP02
     超参数:
@@ -88,3 +90,13 @@ BASELINE:
     有一点提升
 
 ![alt text](image-6.png)
+
+
+
+
+***手写数据识别***
+    初版，灰度较低，图片模糊，导致识别错误率高
+    ![alt text](image-8.png)
+    v1，将低灰度像素增强，错误率下降，但仍存在较多错误。
+    认为是图片分辨率低导致的，转角很不平滑
+    ![alt text](image-9.png)

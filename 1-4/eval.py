@@ -17,6 +17,8 @@ img_dir = './handwrite'
 run_name = 'cnn06'
 model_flag = 1  # 0: mlp, 1: cnn
 
+eval_ver = 'v1'
+
 def main():
     # Select device.
     if torch.cuda.is_available():
@@ -38,15 +40,16 @@ def main():
     
     # 反转灰度（如果图片是白底黑字，使用反转灰度）
     img_data = 1 - img_data
+    img_data = np.where(img_data > 0.1, 1.0, img_data)
     utils.draw_imgs(img_data)
     
     # 加载模型
     if model_flag == 0:
         model = SimpleMLP().to(device)
-        model.load_state_dict(torch.load(f'{run_name}.pt', map_location=device))
+        model.load_state_dict(torch.load(f'{run_name}.pt', map_location=device, weights_only=True))
     else:
         model = SimpleCNN().to(device)
-        model.load_state_dict(torch.load(f'{run_name}.pt', map_location=device))
+        model.load_state_dict(torch.load(f'{run_name}.pt', map_location=device, weights_only=True))
     
     # 预测
     model.eval()
@@ -58,7 +61,7 @@ def main():
     
     # 用 tensorboard 记录预测结果
     # 假设 y_pred 中每一行是预测的标签（数字0～9）；data 是对应的图片，形状是 (n, c, h, w)
-    writer = SummaryWriter(f'runs/eval_{run_name}')
+    writer = SummaryWriter(f'runs/eval_{run_name}_{eval_ver}')
     for i in range(10):
         # mask 是一个布尔向量，表示 y_pred 的值等于 i 的位置，即预测为数字 i 的位置
         mask = (y_pred.view(-1) == i)
