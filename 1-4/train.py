@@ -9,15 +9,15 @@ import pandas as pd
 import time
 
 from mlp import SimpleMLP
-# from cnn import SimpleCNN
+from cnn import SimpleCNN
 from preprocess import preprocess
 import utils
 
-# tensorboard 记录的文件夹名称
-run_name = 'mlp01'
-# run_name = 'cnn'
+# TensorBoard log directory name.
+# run_name = 'mlp01'
+run_name = 'cnn01'
 
-# 超参数
+# Hyperparameters.
 g_num_epochs = 20
 g_lr = 0.01
 g_batch_size = 500
@@ -27,12 +27,12 @@ input_dim = 28 * 28
 hidden_dim = 16
 hidden_num = 2
 
-model_flag = 0 # mlp
-# model_flag = 1 # cnn
+# model_flag = 0 # mlp
+model_flag = 1 # cnn
 
 
 def main():
-    # 选择设备
+    # Select device.
     if torch.cuda.is_available():
         device = torch.device('cuda:0')
     elif torch.mps.is_available():
@@ -41,7 +41,7 @@ def main():
         device = torch.device('cpu')
     print(f'Using device: {device}')
     
-    # 读入处理后的数据
+    # Load preprocessed data.
     train_data, train_label, test_data = preprocess('dataset/train1.csv', 'dataset/test.csv')
     val_data, val_label, test_data = preprocess('dataset/val1.csv', 'dataset/test.csv')
     n_train = train_data.shape[0]
@@ -50,15 +50,15 @@ def main():
     
     X_train = torch.tensor(train_data, dtype=torch.float32)
     y_train = torch.tensor(train_label, dtype=torch.int8).reshape(-1, 1)
-    X_val = torch.tensor(train_data, dtype=torch.float32)
-    y_val = torch.tensor(train_label, dtype=torch.int8).reshape(-1, 1)
+    X_val = torch.tensor(val_data, dtype=torch.float32)
+    y_val = torch.tensor(val_label, dtype=torch.int8).reshape(-1, 1)
     X_test = torch.tensor(test_data, dtype=torch.float32)
     print(X_train.shape)
     print(y_train.shape)
     print(X_val.shape)
     print(y_val.shape)
     print(X_test.shape)
-    # 从训练集随机挑选9张图片绘制
+    # Randomly pick images from the training set to visualize.
     utils.draw_imgs(X_train, y_train)
     
     y_train = torch.tensor(np.eye(10)[y_train.reshape(-1)], dtype=torch.float32)
@@ -74,6 +74,9 @@ def main():
         loss = nn.CrossEntropyLoss()
     else: # cnn
         print('CNN')
+        model = SimpleCNN().to(device)
+        optimizer = optim.Adam(model.parameters(), lr=g_lr, weight_decay=g_weight_decay)
+        loss = nn.CrossEntropyLoss()
         
     writer = SummaryWriter(f'runs/{run_name}')
     for epoch in range(g_num_epochs):
@@ -119,23 +122,29 @@ def main():
         writer.add_scalar('train/loss', epoch_loss, epoch)
         writer.add_scalar('val/accuracy', val_accuracy, epoch)
     
-    # 用 tensorboard 记录前 50 个样本的预测结果
-    # 假设 y_pred 中每一行是预测的标签（数字0～9）；data 是对应的图片，形状是 (n, c, h, w)
+    # Log predictions for the first 50 samples to TensorBoard.
+    # Assume each row in y_pred is a predicted label (0-9); data has shape (n, c, h, w).
+    model.eval()
+    with torch.no_grad():
+        y_test_pred = model(X_test.to(device))
     vis_data = X_test[:50]
-    vis_pred = y_pred[:50].cpu()
+    vis_pred = torch.argmax(y_test_pred[:50], dim=1).cpu()
     for i in range(10):
-        # mask 是一个布尔向量，表示 vis_pred 的值等于 i 的位置，即预测为数字 i 的位置
-        mask = (vis_pred.view(-1) == i)
-        # 仅当存在预测为数字 i 的图片时才记录
+        # mask is a boolean vector where vis_pred equals i.
+        mask = (vis_pred == i)
+        # Only log when there are images predicted as i.
         if mask.sum() > 0:
-            # 把预测为数字 i 的图片记录到 tensorboard
+            # Log images predicted as i to TensorBoard.
             writer.add_images(f'num={i}', vis_data[mask])
     
-    # 保存到 CSV 文件，第一列为图片id，第二列为预测类别
-    sub = pd.DataFrame({'ImageId': np.arange(1, n_test + 1), 'Label': y_pred.cpu().numpy()})
+    # Save CSV: first column is ImageId, second is predicted label.
+    y_test_label = torch.argmax(y_test_pred, dim=1).cpu().numpy()
+    sub = pd.DataFrame({'ImageId': np.arange(1, n_test + 1), 'Label': y_test_label})
     print(sub)
-    sub.to_csv(f'1-4/{run_name}_submission.csv', index=False)
+    sub.to_csv(f'{run_name}_submission.csv', index=False)
 
 
 if __name__ == '__main__':
     main()
+
+
