@@ -1,0 +1,110 @@
+﻿<!doctype html>
+<html><head><meta charset="utf-8" />
+<style>
+body{font-family:"Microsoft YaHei", "Segoe UI", Arial, sans-serif;background:#fff;color:#111;margin:0;padding:24px;line-height:1.45;}
+.line{white-space:pre-wrap;font-size:16px;}
+.md-img{display:block;max-width:100%;margin:8px 0;border:1px solid #ddd;}
+</style></head><body>
+<div class="line"><img src="image-7.png" class="md-img" /></div>
+<div class="line">&nbsp;</div>
+<div class="line">BASELINE:</div>
+<div class="line">    MLP02</div>
+<div class="line">    超参数:</div>
+<div class="line">        训练轮数: 20</div>
+<div class="line">        batch_size: 500</div>
+<div class="line">        学习率: 0.01</div>
+<div class="line">        weight_decay: 1e-4</div>
+<div class="line">        优化器: Adam</div>
+<div class="line">        网络结构: 28*28 -&gt; 256 -&gt; 128 -&gt; 10</div>
+<div class="line">        Dropout: 0.2</div>
+<div class="line">    val acc: 0.97</div>
+<div class="line">&nbsp;</div>
+<div class="line">    CNN02</div>
+<div class="line">    超参数:</div>
+<div class="line">        训练轮数: 20</div>
+<div class="line">        batch_size: 500</div>
+<div class="line">        学习率: 0.01</div>
+<div class="line">        weight_decay: 1e-4</div>
+<div class="line">        优化器: Adam</div>
+<div class="line">        网络结构:</div>
+<div class="line">            Conv(1-&gt;16, k5, s1, p2) + ReLU + MaxPool2d(2)</div>
+<div class="line">            Conv(16-&gt;32, k5, s1, p2) + ReLU + MaxPool2d(2)</div>
+<div class="line">            Linear(32*7*7 -&gt; 128) + ReLU</div>
+<div class="line">            Linear(128 -&gt; 10)</div>
+<div class="line">    val acc: 0.985</div>
+<div class="line">    <img src="image.png" class="md-img" /></div>
+<div class="line">&nbsp;</div>
+<div class="line">调参1:</div>
+<div class="line">    MLP03</div>
+<div class="line">    超参数:</div>
+<div class="line">        训练轮数: 50</div>
+<div class="line">        batch_size: 500</div>
+<div class="line">        学习率: 0.01</div>
+<div class="line">        weight_decay: 1e-4</div>
+<div class="line">        优化器: Adam</div>
+<div class="line">        网络结构: 28*28 -&gt; 256 -&gt; 128 -&gt; 10</div>
+<div class="line">        Dropout: 0.2</div>
+<div class="line">    val acc: 0.97</div>
+<div class="line">    <img src="image-1.png" class="md-img" /></div>
+<div class="line">    感觉是模型到头了，到后面轮次就是过拟合</div>
+<div class="line">&nbsp;</div>
+<div class="line">    CNN03-    BatchNorm2d</div>
+<div class="line">    超参数:</div>
+<div class="line">        训练轮数: 20</div>
+<div class="line">        batch_size: 500</div>
+<div class="line">        学习率: 0.01</div>
+<div class="line">        weight_decay: 1e-4</div>
+<div class="line">        优化器: Adam</div>
+<div class="line">        网络结构:</div>
+<div class="line">            Conv(1-&gt;16, k5, s1, p2) + ReLU + MaxPool2d(2)</div>
+<div class="line">            Conv(16-&gt;32, k5, s1, p2) + ReLU + MaxPool2d(2)</div>
+<div class="line">            Linear(32*7*7 -&gt; 128) + ReLU</div>
+<div class="line">            Linear(128 -&gt; 10)</div>
+<div class="line">    val acc: 0.9847</div>
+<div class="line">    <img src="image-2.png" class="md-img" /></div>
+<div class="line">    感觉有点劣化，撤回该改动</div>
+<div class="line">&nbsp;</div>
+<div class="line">    CNN04-    BatchSize 500-&gt;128</div>
+<div class="line">    超参数:</div>
+<div class="line">        训练轮数: 20</div>
+<div class="line">        batch_size: 128</div>
+<div class="line">        学习率: 0.01</div>
+<div class="line">        weight_decay: 1e-4</div>
+<div class="line">        优化器: Adam</div>
+<div class="line">        网络结构:</div>
+<div class="line">            Conv(1-&gt;16, k5, s1, p2) + ReLU + MaxPool2d(2)</div>
+<div class="line">            Conv(16-&gt;32, k5, s1, p2) + ReLU + MaxPool2d(2)</div>
+<div class="line">            Linear(32*7*7 -&gt; 128) + ReLU</div>
+<div class="line">            Linear(128 -&gt; 10)</div>
+<div class="line">    val acc: 0.9837</div>
+<div class="line">    <img src="image-3.png" class="md-img" /></div>
+<div class="line">    暂且保留</div>
+<div class="line">&nbsp;</div>
+<div class="line">    CNN06-    卷积第二层 kernel 3*3</div>
+<div class="line">    超参数:</div>
+<div class="line">        训练轮数: 20</div>
+<div class="line">        batch_size: 128</div>
+<div class="line">        学习率: 0.01</div>
+<div class="line">        weight_decay: 1e-4</div>
+<div class="line">        优化器: Adam</div>
+<div class="line">        网络结构:</div>
+<div class="line">            Conv(1-&gt;16, k5, s1, p2) + ReLU + MaxPool2d(2)</div>
+<div class="line">            Conv(16-&gt;32, k3, s1, p1) + ReLU + MaxPool2d(2)</div>
+<div class="line">            Linear(32*7*7 -&gt; 128) + ReLU</div>
+<div class="line">            Linear(128 -&gt; 10)</div>
+<div class="line">    val acc: 0.9865</div>
+<div class="line">    <img src="image-5.png" class="md-img" /></div>
+<div class="line">    有一点提升</div>
+<div class="line">&nbsp;</div>
+<div class="line"><img src="image-6.png" class="md-img" /></div>
+<div class="line">&nbsp;</div>
+<div class="line">&nbsp;</div>
+<div class="line">&nbsp;</div>
+<div class="line">&nbsp;</div>
+<div class="line"><strong>手写数据识别</strong></div>
+<div class="line">    初版，灰度较低，图片模糊，导致识别错误率高</div>
+<div class="line">    <img src="image-8.png" class="md-img" /></div>
+<div class="line">    v1，将低灰度像素增强，错误率下降，但仍存在较多错误。</div>
+<div class="line">    认为是图片分辨率低导致的，转角很不平滑</div>
+<div class="line">    <img src="image-9.png" class="md-img" /></div>
+</body></html>
