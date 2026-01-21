@@ -14,8 +14,11 @@ from preprocess import preprocess
 import utils
 
 # TensorBoard log directory name.
-run_name = 'mlp02'
-# run_name = 'cnn01'
+# run_name = 'mlp03'
+run_name = 'cnn06'
+
+# model_flag = 0 # mlp
+model_flag = 1 # cnn
 
 # Hyperparameters.
 g_num_epochs = 20
@@ -27,8 +30,6 @@ input_dim = 28 * 28
 hidden_dim = 16
 hidden_num = 2
 
-model_flag = 0 # mlp
-# model_flag = 1 # cnn
 
 
 def main():
@@ -59,7 +60,7 @@ def main():
     print(y_val.shape)
     print(X_test.shape)
     # Randomly pick images from the training set to visualize.
-    utils.draw_imgs(X_train, y_train)
+    # utils.draw_imgs(X_train, y_train)
     
     y_train = torch.tensor(np.eye(10)[y_train.reshape(-1)], dtype=torch.float32)
     y_val = torch.tensor(np.eye(10)[y_val.reshape(-1)], dtype=torch.float32)
