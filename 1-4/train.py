@@ -14,11 +14,11 @@ from preprocess import preprocess
 import utils
 
 # TensorBoard log directory name.
-# run_name = 'mlp03'
-run_name = 'cnn06'
+run_name = 'mlp02'
+# run_name = 'cnn06'
 
-# model_flag = 0 # mlp
-model_flag = 1 # cnn
+model_flag = 0 # mlp
+# model_flag = 1 # cnn
 
 # Hyperparameters.
 g_num_epochs = 20
@@ -122,6 +122,9 @@ def main():
         writer.add_scalar('train/accuracy', train_accuracy, epoch)
         writer.add_scalar('train/loss', epoch_loss, epoch)
         writer.add_scalar('val/accuracy', val_accuracy, epoch)
+
+    # Save trained model parameters with run_name.
+    torch.save(model.state_dict(), f'{run_name}.pt')
     
     # Log predictions for the first 50 samples to TensorBoard.
     # Assume each row in y_pred is a predicted label (0-9); data has shape (n, c, h, w).

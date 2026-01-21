@@ -86,3 +86,5 @@ BASELINE:
     val acc: 0.9865
     ![alt text](image-5.png)
     有一点提升
+
+![alt text](image-6.png)
