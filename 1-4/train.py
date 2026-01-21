@@ -36,7 +36,7 @@ def main():
     print(f'Using device: {device}')
     
     # 读入处理后的数据
-    train_data, train_label, test_data = preprocess('1-4/dataset/train.csv', '1-4/dataset/test.csv')
+    train_data, train_label, test_data = preprocess('dataset/train.csv', 'dataset/test.csv')
     n_train = train_data.shape[0]
     n_test = test_data.shape[0]
     
