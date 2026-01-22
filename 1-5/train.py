@@ -1,5 +1,6 @@
 ﻿import time
 
+import argparse
 import pandas as pd
 import torch
 import torch.nn as nn
@@ -11,12 +12,12 @@ from cifar_cnn import ResNet
 from dataset import CIFAR10TestDataset, CIFAR10TrainDataset
 import utils
 
-run_name = "00"
+run_name = "01"
 
 g_eval_batch_size = 10000
-g_num_epochs = 20
+g_num_epochs = 200
 g_lr = 0.01
-g_batch_size = 32
+g_batch_size = 512
 g_weight_decay = 1e-4
 
 # Dataset classes
@@ -39,7 +40,26 @@ class_to_idx = {cls_name: idx for idx, cls_name in enumerate(cifar10_classes)}
 idx_to_class = {idx: cls_name for cls_name, idx in class_to_idx.items()}
 
 
+class CachedDataset(torch.utils.data.Dataset):
+    def __init__(self, dataset):
+        self.samples = [dataset[i] for i in range(len(dataset))]
+
+    def __len__(self):
+        return len(self.samples)
+
+    def __getitem__(self, idx):
+        return self.samples[idx]
+
+
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--cache-data", action="store_true", default=True)
+    parser.add_argument("--no-cache-data", action="store_false", dest="cache_data")
+    return parser.parse_args()
+
+
 if __name__ == '__main__':
+    args = parse_args()
     # Select device.
     if torch.cuda.is_available():
         device = torch.device('cuda:0')
@@ -59,6 +79,10 @@ if __name__ == '__main__':
     test_dataset = CIFAR10TestDataset(
         images_dir='./dataset/test',
     )
+
+    if args.cache_data:
+        train_dataset = CachedDataset(train_dataset)
+        test_dataset = CachedDataset(test_dataset)
     
     train_size = int(len(train_dataset) * 0.8)
     val_size = len(train_dataset) - train_size
@@ -69,6 +93,9 @@ if __name__ == '__main__':
         train_subset,
         batch_size=g_batch_size,
         shuffle=True,
+        num_workers=8,
+        pin_memory=True,
+        persistent_workers=True,
     )
     val_loader = DataLoader(
         val_subset,
