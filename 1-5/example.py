@@ -1,4 +1,4 @@
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, random_split
 import torch
 import pandas as pd
 
@@ -10,7 +10,7 @@ import utils
 batch_size = 32
 eval_batch_size = 10000
 
-# CIFAR-10 的类别
+# dataset 的类别
 cifar10_classes = [
     'airplane',
     'automobile',
@@ -31,21 +31,30 @@ idx_to_class = {idx: cls_name for cls_name, idx in class_to_idx.items()}
 
 
 if __name__ == '__main__':
-    dataset_dit = './cifar-10'
+    dataset_dir = './dataset'
     
     train_dataset = CIFAR10TrainDataset(
-        images_dir='./cifar-10/train',
-        labels_csv='./cifar-10/trainLabels.csv',
+        images_dir='./dataset/train',
+        labels_csv='./dataset/trainLabels.csv',
         class_to_idx=class_to_idx,
     )
     test_dataset = CIFAR10TestDataset(
-        images_dir='./cifar-10/test',
+        images_dir='./dataset/test',
     )
     
+    train_size = int(len(train_dataset) * 0.8)
+    val_size = len(train_dataset) - train_size
+    train_subset, val_subset = random_split(train_dataset, [train_size, val_size])
+
     train_loader = DataLoader(
-        train_dataset,
+        train_subset,
         batch_size=batch_size,
         shuffle=True,
+    )
+    val_loader = DataLoader(
+        val_subset,
+        batch_size=batch_size,
+        shuffle=False,
     )
     test_loader = DataLoader(
         test_dataset,
