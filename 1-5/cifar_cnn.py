@@ -1,8 +1,8 @@
-from torch import nn
+﻿from torch import nn
 from torch.nn import functional as F
 
 class Residual(nn.Module):
-    """实现残差块"""
+    """Residual block."""
     def __init__(self, in_channels, out_channels, use_1x1conv=False, stride=1):
         super().__init__()
         self.seq = nn.Sequential(
@@ -13,7 +13,7 @@ class Residual(nn.Module):
             nn.BatchNorm2d(out_channels)
         )
 
-        # 是否使用 1x1 卷积层来适配尺寸
+        # Use 1x1 conv to match shapes when needed.
         if use_1x1conv:
             self.res_conv = nn.Conv2d(
                 in_channels, out_channels,
@@ -32,7 +32,7 @@ class Residual(nn.Module):
         return F.relu(Y)
 
 
-# 适配 cifar-10 数据集的卷积神经网络
+# CNN adapted for CIFAR-10.
 class ResNet(nn.Module):
     
     def __init__(self, input_chnls, num_classes):
@@ -55,7 +55,7 @@ class ResNet(nn.Module):
         for i, out_chnl_num in enumerate(self.chnl_cfg):
             is_first_stage = (i == 0)
             modules.append(
-                self._make_layer(in_chnl_num, out_chnl_num, self.num_residuals, fisrt_block=is_first_stage)
+                self._make_layer(in_chnl_num, out_chnl_num, self.num_residuals, first_stage=is_first_stage)
             )
             in_chnl_num = out_chnl_num
 
@@ -63,17 +63,21 @@ class ResNet(nn.Module):
         modules.extend([nn.AdaptiveAvgPool2d((1, 1)),
                         nn.Flatten(),
                         nn.Linear(self.chnl_cfg[-1], num_classes)])
+        
+        self.net = nn.Sequential(*modules)
     
-    def _make_layer(self, in_chnl_num, out_chnl_num, num_residuals, first_block = False):
+    def _make_layer(self, in_chnl_num, out_chnl_num, num_residuals, first_stage = False):
         layers = []
         for i in range(num_residuals):
-            if i == 0 and not first_block:
-                layers.append(Residual(in_chnl_num, out_chnl_num, use_1x1conv=True, stride=2))
-            elif i == 0 and first_block:
-                layers.append(Residual(in_chnl_num, out_chnl_num, use_1x1conv=(in_chnl_num != out_chnl_num)))
+            if i == 0:
+                stride = 1 if first_stage else 2
+                use_1x1conv = (not first_stage) or (in_chnl_num != out_chnl_num)
+                layers.append(
+                    Residual(in_chnl_num, out_chnl_num, use_1x1conv=use_1x1conv, stride=stride)
+                )
             else:
-                layers.append(Residual(in_chnl_num, out_chnl_num))
-            return nn.Sequential(*layers)
+                layers.append(Residual(out_chnl_num, out_chnl_num))
+        return nn.Sequential(*layers)
             
         
     def forward(self, x):
