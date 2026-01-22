@@ -1,11 +1,17 @@
-from torch.utils.data import DataLoader, random_split
-import torch
+import time
+
 import pandas as pd
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from tensorboardX import SummaryWriter
+from torch.utils.data import DataLoader, TensorDataset, random_split
 
-
-from dataset import CIFAR10TrainDataset, CIFAR10TestDataset
+from cifar_cnn import ResNet
+from dataset import CIFAR10TestDataset, CIFAR10TrainDataset
 import utils
 
+run_name = "00"
 
 batch_size = 32
 eval_batch_size = 10000

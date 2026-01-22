@@ -5,6 +5,7 @@
 1-3/models/
 1-3/runs/
 **/runs/
+1-5/dataset/
 *.csv
 *.docx
 ~$*
