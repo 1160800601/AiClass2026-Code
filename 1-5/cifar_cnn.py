@@ -44,10 +44,9 @@ class ResNet(nn.Module):
         
         # 2. input
         modules = [
-            nn.Conv2d(input_chnls, self.chnl_cfg[0], kernel_size=7, stride=2, padding=3),
+            nn.Conv2d(input_chnls, self.chnl_cfg[0], kernel_size=3, stride=1, padding=1),
             nn.BatchNorm2d(64),
             nn.ReLU(),
-            nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
         ]
         
         # 3. loop residual
