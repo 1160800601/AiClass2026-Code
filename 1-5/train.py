@@ -16,10 +16,10 @@ import utils
 run_name = "v5"
 
 g_eval_batch_size = 10000
-g_num_epochs = 50
-g_lr = 0.01
+g_num_epochs = 200
+g_lr = 0.1
 g_batch_size = 256
-g_weight_decay = 1e-4
+g_weight_decay = 5e-4
 
 # Dataset classes
 cifar10_classes = [
@@ -145,8 +145,15 @@ if __name__ == '__main__':
     
     # define model
     model = ResNet(3, 10).to(device)
-    optimizer = optim.Adam(model.parameters(), lr=g_lr, weight_decay=g_weight_decay)
-    loss = nn.CrossEntropyLoss()
+    optimizer = optim.SGD(
+        model.parameters(),
+        lr=g_lr,
+        momentum=0.9,
+        weight_decay=g_weight_decay,
+        nesterov=True,
+    )
+    scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=g_num_epochs)
+    loss = nn.CrossEntropyLoss(label_smoothing=0.1)
     best_model_path = None
     best_val_acc = -1.0
     best_state_dict = None
@@ -197,6 +204,7 @@ if __name__ == '__main__':
         writer.add_scalar('train/accuracy', train_accuracy, epoch)
         writer.add_scalar('train/loss', epoch_loss, epoch)
         writer.add_scalar('val/accuracy', val_accuracy, epoch)
+        scheduler.step()
         if val_accuracy > best_val_acc:
             best_val_acc = val_accuracy
             best_state_dict = {k: v.detach().cpu() for k, v in model.state_dict().items()}

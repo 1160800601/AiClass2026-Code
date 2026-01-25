@@ -66,5 +66,38 @@
 - g_batch_size = 256
 - g_weight_decay = 1e-4
 - block: two 3x3 convs (p1); first block stride 1 (stage 0) else 2; 1x1 skip when needed
-- head: AdaptiveAvgPool2d(1x1) -> Flatten -> Linear(512, num_classes)
+- head: AdaptiveAvgPool2d(1x1) -> Flatten -> Linear(256, num_classes)
 - score: 0.781
+
+## v6
+- change: optimizer
+- model: ResNet (CIFAR-10)
+- stage channels: [32, 64, 128, 256]
+- residuals per stage: [3, 4, 6, 3]
+- stem: Conv2d k3 s1 p1 -> BN -> ReLU
+- g_eval_batch_size = 10000
+- g_num_epochs = 200
+- g_lr = 0.1
+- g_batch_size = 256
+- g_weight_decay = 5e-4
+- optimizer: SGD (momentum=0.9, nesterov=True)
+- scheduler: cosine (CosineAnnealingLR)
+- block: two 3x3 convs (p1); first block stride 1 (stage 0) else 2; 1x1 skip when needed
+- head: AdaptiveAvgPool2d(1x1) -> Flatten -> Linear(256, num_classes)
+- 问题：Epoch: 91, Train Loss: 0.1012, Train Acc: 0.9645, Val Acc: 0.7140, Time: 6.13s，过拟合了
+- 
+## v7
+- change: label_smoothing、dropout， 数据增强
+- model: ResNet (CIFAR-10)
+- stage channels: [32, 64, 128, 256]
+- residuals per stage: [3, 4, 6, 3]
+- stem: Conv2d k3 s1 p1 -> BN -> ReLU
+- g_eval_batch_size = 10000
+- g_num_epochs = 200
+- g_lr = 0.1
+- g_batch_size = 256
+- g_weight_decay = 5e-4
+- optimizer: SGD (momentum=0.9, nesterov=True)
+- scheduler: cosine (CosineAnnealingLR)
+- block: two 3x3 convs (p1); first block stride 1 (stage 0) else 2; 1x1 skip when needed
+- head: AdaptiveAvgPool2d(1x1) -> Flatten -> Linear(256, num_classes)
