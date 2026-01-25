@@ -13,12 +13,12 @@ from cifar_cnn import ResNet
 from dataset import CIFAR10TestDataset, CIFAR10TrainDataset
 import utils
 
-run_name = "v1"
+run_name = "v5"
 
 g_eval_batch_size = 10000
 g_num_epochs = 50
 g_lr = 0.01
-g_batch_size = 512
+g_batch_size = 256
 g_weight_decay = 1e-4
 
 # Dataset classes

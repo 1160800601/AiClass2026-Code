@@ -3,15 +3,21 @@ from torch.nn import functional as F
 
 class Residual(nn.Module):
     """Residual block."""
-    def __init__(self, in_channels, out_channels, use_1x1conv=False, stride=1):
+    def __init__(self, in_channels, out_channels, use_1x1conv=False, stride=1, num_convs=2):
         super().__init__()
-        self.seq = nn.Sequential(
-            nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1, stride=stride),
-            nn.BatchNorm2d(out_channels),
-            nn.ReLU(),
-            nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1),
-            nn.BatchNorm2d(out_channels)
-        )
+        if num_convs < 1:
+            raise ValueError("num_convs must be >= 1")
+        layers = []
+        for i in range(num_convs):
+            in_chnl = in_channels if i == 0 else out_channels
+            conv_stride = stride if i == 0 else 1
+            layers.extend([
+                nn.Conv2d(in_chnl, out_channels, kernel_size=3, padding=1, stride=conv_stride),
+                nn.BatchNorm2d(out_channels),
+            ])
+            if i != num_convs - 1:
+                layers.append(nn.ReLU())
+        self.seq = nn.Sequential(*layers)
 
         # Use 1x1 conv to match shapes when needed.
         if use_1x1conv:
@@ -39,13 +45,14 @@ class ResNet(nn.Module):
         super().__init__()
         
         # 1. stage chnls
-        self.chnl_cfg = [64, 128, 256, 512]
-        self.num_residuals = 2
+        # self.chnl_cfg = [64, 128, 256, 512]
+        self.chnl_cfg = [32, 64, 128, 256]
+        self.res_cfg = [3, 4, 6, 3]
         
         # 2. input
         modules = [
             nn.Conv2d(input_chnls, self.chnl_cfg[0], kernel_size=3, stride=1, padding=1),
-            nn.BatchNorm2d(64),
+            nn.BatchNorm2d(self.chnl_cfg[0]),
             nn.ReLU(),
         ]
         
@@ -54,7 +61,7 @@ class ResNet(nn.Module):
         for i, out_chnl_num in enumerate(self.chnl_cfg):
             is_first_stage = (i == 0)
             modules.append(
-                self._make_layer(in_chnl_num, out_chnl_num, self.num_residuals, first_stage=is_first_stage)
+                self._make_layer(in_chnl_num, out_chnl_num, self.res_cfg[i], first_stage=is_first_stage)
             )
             in_chnl_num = out_chnl_num
 
