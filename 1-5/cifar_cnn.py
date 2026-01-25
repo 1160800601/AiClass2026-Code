@@ -64,7 +64,9 @@ class ResNet(nn.Module):
                 self._make_layer(in_chnl_num, out_chnl_num, self.res_cfg[i], first_stage=is_first_stage)
             )
             in_chnl_num = out_chnl_num
-
+            
+        modules.append(nn.Dropout(p=0.2))
+        
         # 4. output
         modules.extend([nn.AdaptiveAvgPool2d((1, 1)),
                         nn.Flatten(),

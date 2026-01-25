@@ -7,13 +7,14 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from tensorboardX import SummaryWriter
-from torch.utils.data import DataLoader, TensorDataset, random_split
+from torch.utils.data import DataLoader, random_split
+from torchvision import transforms
 
 from cifar_cnn import ResNet
 from dataset import CIFAR10TestDataset, CIFAR10TrainDataset
 import utils
 
-run_name = "v5"
+run_name = "v8"
 
 g_eval_batch_size = 10000
 g_num_epochs = 200
@@ -41,15 +42,39 @@ class_to_idx = {cls_name: idx for idx, cls_name in enumerate(cifar10_classes)}
 idx_to_class = {idx: cls_name for cls_name, idx in class_to_idx.items()}
 
 
+cifar10_mean = (0.4914, 0.4822, 0.4465)
+cifar10_std = (0.2023, 0.1994, 0.2010)
+
+train_transform = transforms.Compose([
+    transforms.RandomCrop(32, padding=4),
+    transforms.RandomHorizontalFlip(),
+    transforms.ToTensor(),
+    transforms.Normalize(cifar10_mean, cifar10_std),
+])
+
+test_transform = transforms.Compose([
+    transforms.ToTensor(),
+    transforms.Normalize(cifar10_mean, cifar10_std),
+])
+
+
 class CachedDataset(torch.utils.data.Dataset):
-    def __init__(self, dataset):
-        self.samples = [dataset[i] for i in range(len(dataset))]
+    def __init__(self, images, labels, transform=None):
+        self.images = images
+        self.labels = labels
+        self.transform = transform
+        self._to_pil = transforms.ToPILImage()
 
     def __len__(self):
-        return len(self.samples)
+        return len(self.images)
 
     def __getitem__(self, idx):
-        return self.samples[idx]
+        image = self.images[idx]
+        if self.transform:
+            image = self._to_pil(image)
+            image = self.transform(image)
+        label = self.labels[idx]
+        return image, label
 
 
 def  load_or_create_cache(cache_path, dataset):
@@ -58,8 +83,9 @@ def  load_or_create_cache(cache_path, dataset):
         return torch.load(cache_path, map_location="cpu", weights_only=True)
 
     print(f"[cache] create: {cache_path}")
+    pil_to_tensor = transforms.PILToTensor()
     samples = [dataset[i] for i in range(len(dataset))]
-    images = torch.stack([s[0] for s in samples])
+    images = torch.stack([pil_to_tensor(s[0]) for s in samples])
     labels = torch.tensor([s[1] for s in samples])
     cache = {"images": images, "labels": labels}
     torch.save(cache, cache_path)
@@ -88,26 +114,47 @@ if __name__ == '__main__':
     cache_dir = os.path.join(dataset_dir, 'cache')
     os.makedirs(cache_dir, exist_ok=True)
     
-    train_dataset = CIFAR10TrainDataset(
+    base_train_dataset = CIFAR10TrainDataset(
         images_dir='./dataset/train',
         labels_csv='./dataset/trainLabels.csv',
+        transform=None,
         class_to_idx=class_to_idx,
     )
-    test_dataset = CIFAR10TestDataset(
+    base_test_dataset = CIFAR10TestDataset(
         images_dir='./dataset/test',
+        transform=None,
     )
 
     if args.cache_data:
         train_cache = load_or_create_cache(
-            os.path.join(cache_dir, 'train_cache.pt'),
-            train_dataset,
+            os.path.join(cache_dir, 'train_cache2.pt'),
+            base_train_dataset,
         )
         test_cache = load_or_create_cache(
-            os.path.join(cache_dir, 'test_cache.pt'),
-            test_dataset,
+            os.path.join(cache_dir, 'test_cache2.pt'),
+            base_test_dataset,
         )
-        train_dataset = TensorDataset(train_cache["images"], train_cache["labels"])
-        test_dataset = TensorDataset(test_cache["images"], test_cache["labels"])
+        train_dataset = CachedDataset(
+            train_cache["images"],
+            train_cache["labels"],
+            transform=train_transform,
+        )
+        test_dataset = CachedDataset(
+            test_cache["images"],
+            test_cache["labels"],
+            transform=test_transform,
+        )
+    else:
+        train_dataset = CIFAR10TrainDataset(
+            images_dir='./dataset/train',
+            labels_csv='./dataset/trainLabels.csv',
+            transform=train_transform,
+            class_to_idx=class_to_idx,
+        )
+        test_dataset = CIFAR10TestDataset(
+            images_dir='./dataset/test',
+            transform=test_transform,
+        )
     
     train_size = int(len(train_dataset) * 0.8)
     val_size = len(train_dataset) - train_size

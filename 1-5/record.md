@@ -85,7 +85,7 @@
 - block: two 3x3 convs (p1); first block stride 1 (stage 0) else 2; 1x1 skip when needed
 - head: AdaptiveAvgPool2d(1x1) -> Flatten -> Linear(256, num_classes)
 - 问题：Epoch: 91, Train Loss: 0.1012, Train Acc: 0.9645, Val Acc: 0.7140, Time: 6.13s，过拟合了
-- 
+  
 ## v7
 - change: label_smoothing、dropout， 数据增强
 - model: ResNet (CIFAR-10)
@@ -101,3 +101,4 @@
 - scheduler: cosine (CosineAnnealingLR)
 - block: two 3x3 convs (p1); first block stride 1 (stage 0) else 2; 1x1 skip when needed
 - head: AdaptiveAvgPool2d(1x1) -> Flatten -> Linear(256, num_classes)
+- score:0.941   好猛！
