@@ -101,6 +101,7 @@
 - scheduler: cosine (CosineAnnealingLR)
 - block: two 3x3 convs (p1); first block stride 1 (stage 0) else 2; 1x1 skip when needed
 - head: AdaptiveAvgPool2d(1x1) -> Flatten -> Linear(256, num_classes)
+- time per epoch: 7s
 - score:0.941   好猛！  
   
 ## v8
@@ -118,4 +119,43 @@
 - scheduler: cosine (CosineAnnealingLR)
 - block: two 3x3 convs (p1); first block stride 1 (stage 0) else 2; 1x1 skip when needed
 - head: AdaptiveAvgPool2d(1x1) -> Flatten -> Linear(256, num_classes)
+- time per epoch: 3s
 - score:0.837
+
+## v9
+- change: 无残差
+- model: ResNet (CIFAR-10)
+- stage channels: [32, 64, 128, 256]
+- residuals per stage: [3, 4, 6, 3]
+- stem: Conv2d k3 s1 p1 -> BN -> ReLU
+- g_eval_batch_size = 10000
+- g_num_epochs = 200
+- g_lr = 0.1
+- g_batch_size = 256
+- g_weight_decay = 5e-4
+- optimizer: SGD (momentum=0.9, nesterov=True)
+- scheduler: cosine (CosineAnnealingLR)
+- block: two 3x3 convs (p1); first block stride 1 (stage 0) else 2; 1x1 skip when needed
+- head: AdaptiveAvgPool2d(1x1) -> Flatten -> Linear(256, num_classes)
+- time per epoch: 7s
+- score:0.91
+
+## v10
+- change: 参数调大
+- model: ResNet (CIFAR-10)
+- stage channels: [64, 128, 256, 512]
+- residuals per stage: [3, 4, 6, 3]
+- stem: Conv2d k3 s1 p1 -> BN -> ReLU
+- g_eval_batch_size = 10000
+- g_num_epochs = 300
+- g_lr = 0.1
+- g_batch_size = 256
+- g_weight_decay = 5e-4
+- optimizer: SGD (momentum=0.9, nesterov=True)
+- scheduler: cosine (CosineAnnealingLR)
+- block: two 3x3 convs (p1); first block stride 1 (stage 0) else 2; 1x1 skip when needed
+- head: AdaptiveAvgPool2d(1x1) -> Flatten -> Linear(256, num_classes)
+- time per epoch: 18s
+- score: 跑不出来
+- Epoch: 250, Train Loss: 0.5020, Train Acc: 0.9995, Val Acc: 0.9386, Time: 24.65s
+- 过拟合比小参数的严重
