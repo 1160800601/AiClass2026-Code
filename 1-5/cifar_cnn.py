@@ -1,6 +1,8 @@
 ﻿from torch import nn
 from torch.nn import functional as F
 
+RESIDUAL_ENABLED = False
+
 class Residual(nn.Module):
     """Residual block."""
     def __init__(self, in_channels, out_channels, use_1x1conv=False, stride=1, num_convs=2):
@@ -20,7 +22,7 @@ class Residual(nn.Module):
         self.seq = nn.Sequential(*layers)
 
         # Use 1x1 conv to match shapes when needed.
-        if use_1x1conv:
+        if use_1x1conv and RESIDUAL_ENABLED:
             self.res_conv = nn.Conv2d(
                 in_channels, out_channels,
                 kernel_size=1, stride=stride
@@ -31,10 +33,11 @@ class Residual(nn.Module):
     def forward(self, X):
         Y = self.seq(X)
 
-        if self.res_conv:
+        if RESIDUAL_ENABLED and self.res_conv:
             X = self.res_conv(X)
 
-        Y += X
+        if RESIDUAL_ENABLED:
+            Y += X
         return F.relu(Y)
 
 
@@ -93,3 +96,4 @@ class ResNet(nn.Module):
     def forward(self, x):
         x = self.net(x)
         return x
+

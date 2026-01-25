@@ -14,7 +14,7 @@ from cifar_cnn import ResNet
 from dataset import CIFAR10TestDataset, CIFAR10TrainDataset
 import utils
 
-run_name = "v8"
+run_name = "v9"
 
 g_eval_batch_size = 10000
 g_num_epochs = 200
