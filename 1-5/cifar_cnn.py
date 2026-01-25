@@ -48,8 +48,8 @@ class ResNet(nn.Module):
         super().__init__()
         
         # 1. stage chnls
-        self.chnl_cfg = [64, 128, 256, 512]
-        # self.chnl_cfg = [32, 64, 128, 256]
+        # self.chnl_cfg = [64, 128, 256, 512]
+        self.chnl_cfg = [32, 64, 128, 256]
         self.res_cfg = [3, 4, 6, 3]
         
         # 2. input

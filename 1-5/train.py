@@ -14,10 +14,10 @@ from cifar_cnn import ResNet
 from dataset import CIFAR10TestDataset, CIFAR10TrainDataset
 import utils
 
-run_name = "v10"
+run_name = "cpu"
 
 g_eval_batch_size = 10000
-g_num_epochs = 300
+g_num_epochs = 200
 g_lr = 0.1
 g_batch_size = 256
 g_weight_decay = 5e-4
@@ -108,6 +108,7 @@ if __name__ == '__main__':
         device = torch.device('mps')
     else:
         device = torch.device('cpu')
+    # device = torch.device('cpu')
     print(f'Using device: {device}')
     
     dataset_dir = './dataset'
