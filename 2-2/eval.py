@@ -8,7 +8,7 @@ from text_process import *
 
 def main():
     # 读入词表
-    with open('vocab.json', 'r') as f:
+    with open('2-2/vocab.json', 'r') as f:
         vocab = json.load(f)
     
     # id -> token

@@ -17,8 +17,13 @@ class TransformerEmbedding(nn.Module):
         """
         super(TransformerEmbedding, self).__init__()
 
-        # 使用 nn.Embedding 作为词嵌入层，参数分别为：词汇表大小、词嵌入维度、填充索引
-        # 指定填充索引，是因为填充没有语义，其嵌入向量可以直接设为 0，且不参与训练
+        # 词嵌入层 (Token Embedding)
+        # nn.Embedding 本质是一个可学习的查找表，将离散的 token ID 映射为连续的向量表示
+        # - num_embeddings: 查找表的行数，即词汇表大小
+        # - embedding_dim: 每个嵌入向量的维度，即 d_model
+        # - padding_idx: 填充 token 的索引，该位置的嵌入向量固定为全 0 且不参与梯度更新
+        # 输入形状: [batch_size, seq_len] (token ID)
+        # 输出形状: [batch_size, seq_len, d_model] (嵌入向量)
         self.tok_emb = nn.Embedding(num_embeddings=vocab_size, embedding_dim=d_model, padding_idx=pad_idx)
         
         # 位置编码
