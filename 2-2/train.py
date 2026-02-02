@@ -32,6 +32,7 @@ def dataset_process(vocab, dataset):
     for text_en, text_zh in dataset:
         input_tensor = process_text(text_en, vocab, max_len, 'en')
         target_tensor = process_text(text_zh, vocab, max_len, 'zh')
+        # input_tensor.shape = [max_len]
         
         data_input.append(input_tensor)
         data_target.append(target_tensor)
@@ -40,12 +41,14 @@ def dataset_process(vocab, dataset):
     data_input = torch.stack(data_input)
     data_target = torch.stack(data_target)
     
+    # data_input.shape = [batch_size, max_len]
+    # data_target.shape = [batch_size, max_len]
     return data_input, data_target
 
 
 def main():
     make_vocab(dataset_raw)
-    vocab = json.load(open('vocab.json', 'r'))
+    vocab = json.load(open('2-2/vocab.json', 'r'))
     id2token = {i: token for token, i in vocab.items()}
     
     data_input, data_target = dataset_process(vocab, dataset_raw)
@@ -96,6 +99,7 @@ def main():
             # output: [batch_size, trg_len - 1, dec_voc_size]
             
             # 计算损失
+            # 把目标序列的第一个 token 去掉，作为预测序列
             loss = criterion(output.reshape(-1, len(vocab)), target[:, 1:].reshape(-1))
             epoch_loss += loss.item()
             

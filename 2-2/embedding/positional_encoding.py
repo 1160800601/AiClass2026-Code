@@ -43,6 +43,8 @@ class PositionalEncoding(nn.Module):
     def forward(self, x):
         # x 的形状：[batch_size, seq_len]
         batch_size, seq_len = x.size()
+        
+        assert seq_len <= self.encoding.shape[0], f"Sequence length {seq_len} is greater than max length {self.encoding.shape[0]}"
 
         # 返回对应序列长度的编码部分，即形状为 [seq_len, d_model] 的位置编码矩阵
         return self.encoding[:seq_len, :]

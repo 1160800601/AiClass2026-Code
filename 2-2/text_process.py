@@ -44,7 +44,7 @@ def make_vocab(dataset):
         [tokenize(text[0], 'en'), tokenize(text[1], 'zh')]
         for text in dataset
     ]
-    print(dataset_tokenized[0])
+    print(f'dataset_tokenized: {dataset_tokenized[0]}')
     
     # 特殊 token
     special_tokens = ['<bos>', '<eos>', '<pad>', '<unk>']
@@ -57,8 +57,8 @@ def make_vocab(dataset):
                 vocab[token] = len(vocab)
     
     # 把词表保存，以便之后推理时使用
-    with open('vocab.json', 'w') as f:
-        json.dump(vocab, f)
+    with open('2-2/vocab.json', 'w') as f:
+        json.dump(vocab, f, indent=4, ensure_ascii=False)
         
     return vocab
 
