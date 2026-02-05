@@ -30,8 +30,20 @@ class ScaleDotProductAttention(nn.Module):
             注意力加权后的输出，形状为 [batch_size, num_heads, seq_len, head_dim]
         """
         # TODO: 实现缩放点积注意力
+        batch_size, head, length, d_tensor = K.size()
+        
         # 1. 计算注意力分数矩阵: Q @ K^T / sqrt(head_dim)
+        scores = torch.matmul(Q, K.transpose(-2, -1)) / torch.sqrt(torch.tensor(d_tensor, dtype=torch.float32))
+        
         # 2. 应用因果掩码（将 mask==0 的位置设为负无穷）
+        if mask is not None:
+            # 将掩码为 0 的位置设置为一个非常小的数，使其注意力权重趋近于 0
+            scores = scores.masked_fill(mask == 0, -10000)
+        
         # 3. Softmax 归一化得到注意力权重
+        attn_weights = torch.softmax(scores, dim=-1)
+        
         # 4. 加权求和得到输出: attn_weights @ V
-        pass
+        attn_output = torch.matmul(attn_weights, V)
+        
+        return attn_output
