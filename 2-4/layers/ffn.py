@@ -26,6 +26,10 @@ class FFN(nn.Module):
         """
         super().__init__()
         # TODO: 定义网络层
+        self.linear1 = nn.Linear(d_model, hidden)
+        self.linear2 = nn.Linear(hidden, d_model)
+        self.relu = nn.ReLU()
+        self.dropout = nn.Dropout(p=drop_prob)
 
     def forward(self, x):
         """
@@ -36,4 +40,8 @@ class FFN(nn.Module):
             输出张量，形状为 [batch_size, seq_len, d_model]
         """
         # TODO: 实现前向传播
-        pass
+        x = self.linear1(x)
+        x = self.relu(x)
+        x = self.dropout(x)
+        x = self.linear2(x)
+        return x
