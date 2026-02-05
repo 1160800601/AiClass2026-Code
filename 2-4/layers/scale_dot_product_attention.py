@@ -34,6 +34,7 @@ class ScaleDotProductAttention(nn.Module):
         
         # 1. 计算注意力分数矩阵: Q @ K^T / sqrt(head_dim)
         scores = torch.matmul(Q, K.transpose(-2, -1)) / torch.sqrt(torch.tensor(d_tensor, dtype=torch.float32))
+        # [batch_size, num_heads, seq_len, seq_len]
         
         # 2. 应用因果掩码（将 mask==0 的位置设为负无穷）
         if mask is not None:
