@@ -39,11 +39,22 @@ class GPTBlock(nn.Module):
         super().__init__()
         # TODO: 初始化
         # 1. 第一个 LayerNorm（用于 Self-Attention 之前）
+        self.ln1 = nn.LayerNorm(d_model)
+        
         # 2. MultiHeadAttention
+        self.self_attention = MultiHeadAttention(d_model=d_model, n_head=n_head)
+        
         # 3. 第一个 Dropout
+        self.dropout1 = nn.Dropout(p=drop_prob)
+        
         # 4. 第二个 LayerNorm（用于 FFN 之前）
+        self.ln2 = nn.LayerNorm(d_model)
+        
         # 5. FFN
+        self.ffn = FFN(d_model=d_model, hidden=d_model*4, drop_prob=drop_prob)
+        
         # 6. 第二个 Dropout
+        self.dropout2 = nn.Dropout(p=drop_prob)
 
     def forward(self, x, mask):
         """
@@ -57,11 +68,24 @@ class GPTBlock(nn.Module):
         # TODO: 实现 Pre-LN 结构的前向传播
         # Self-Attention 子层:
         # 1. 保存输入用于残差连接
+        x_origin = x
+        
         # 2. LayerNorm -> Self-Attention -> Dropout
+        x = self.ln1(x)
+        x = self.self_attention(x)
+        x = self.dropout1(x)
+        
         # 3. 残差连接
+        x += x_origin
+        
         #
         # FFN 子层:
         # 4. 保存输入用于残差连接
+        x_origin = x
         # 5. LayerNorm -> FFN -> Dropout
+        x = self.ln2(x)
+        x = self.ffn(x)
+        x = self.dropout2(x)
         # 6. 残差连接
-        pass
+        x += x_origin
+        
