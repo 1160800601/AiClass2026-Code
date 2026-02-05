@@ -28,8 +28,19 @@ class MultiHeadAttention(nn.Module):
         super().__init__()
         # TODO: 初始化
         # 1. 保存 d_model, n_head, head_dim = d_model // n_head
+        assert d_model % n_head == 0, f"d_model={d_model} 必须能被 n_head={n_head} 整除"
+        self.d_model = d_model
+        self.n_head = n_head
+        self.head_dim = d_model // n_head
+        
         # 2. 定义四个线性变换层: W_q, W_k, W_v, W_o
+        self.W_q = nn.Linear(d_model, d_model)  # Q投影矩阵
+        self.W_k = nn.Linear(d_model, d_model)  # K投影矩阵
+        self.W_v = nn.Linear(d_model, d_model)  # V投影矩阵
+        self.W_o = nn.Linear(d_model, d_model)  # 输出投影矩阵
+        
         # 3. 初始化 ScaleDotProductAttention
+        self.attention = ScaleDotProductAttention() # TODO
     
     def _split_heads(self, tensor):
         """将张量按注意力头数拆分
@@ -41,9 +52,11 @@ class MultiHeadAttention(nn.Module):
             形状为 [batch_size, n_head, seq_len, head_dim]
         """
         # TODO: 实现多头拆分
+        batch_size, length, d_model = tensor.size()
         # 1. 重塑维度: [batch, seq_len, d_model] -> [batch, seq_len, n_head, head_dim]
+        tensor = tensor.view(batch_size, length, self.n_head, self.head_dim)
         # 2. 转置: [batch, seq_len, n_head, head_dim] -> [batch, n_head, seq_len, head_dim]
-        pass
+        tensor = tensor.transpose(1, 2)
 
     def forward(self, x, mask=None):
         """
@@ -57,9 +70,31 @@ class MultiHeadAttention(nn.Module):
             输出张量，形状为 [batch_size, seq_len, d_model]
         """
         # TODO: 实现多头注意力前向传播
+        batch_size, seq_len, _ = x.shape
+        
         # 1. 线性投影生成 Q、K、V
+        Q = self.W_q(x)
+        K = self.W_k(x)
+        V = self.W_v(x)
+        
         # 2. 拆分为多头
+        m_Q = self._split_heads(Q)
+        m_K = self._split_heads(K)
+        m_V = self._split_heads(V)
+        
         # 3. mask 扩展到多头维度
+        if mask is not None:
+            mask = mask.unsqueeze(1).repeat(1, self.n_head, 1, 1)
+        
         # 4. 计算缩放点积注意力
+        attn_output = self.attention(m_Q, m_K, m_V, mask)
+        
         # 5. 合并多头并进行输出投影
-        pass
+        attn_output = attn_output.transpose(1, 2).contiguous()
+        
+        attn_output = attn_output.view(batch_size, seq_len, self.hidden_dim)
+        
+        output = self.W_o(attn_output)
+        
+        return output
+        
