@@ -27,7 +27,7 @@ Transformer 是 2017 年 Google 在论文 [*Attention Is All You Need*](https://
 ### 架构图示
 
 ```
-                    ┌─────────────────┐
+┌─────────────────┐
                     │     Output      │
                     │   Probabilities │
                     └────────┬────────┘
@@ -97,7 +97,9 @@ Transformer 是 2017 年 Google 在论文 [*Attention Is All You Need*](https://
 
 **数学公式：**
 
-$$\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V$$
+$$
+\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V
+$$
 
 其中 $d_k$ 是键向量的维度，除以 $\sqrt{d_k}$ 是为了防止点积结果过大导致 softmax 梯度消失。
 
@@ -106,24 +108,25 @@ $$\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)
 ```python
 def forward(self, Q, K, V, mask=None):
     # Q, K, V 形状: [batch_size, head, length, d_tensor]
-    
+  
     # 1. 计算注意力分数矩阵
     scores = torch.matmul(Q, K.transpose(-2, -1)) / torch.sqrt(torch.tensor(d_tensor))
-    
+  
     # 2. 应用掩码（用于解码器的因果遮蔽）
     if mask is not None:
         scores = scores.masked_fill(mask == 0, -10000)
-    
+  
     # 3. Softmax 归一化
     attn_weights = torch.softmax(scores, dim=-1)
-    
+  
     # 4. 加权求和
     attn_output = torch.matmul(attn_weights, V)
-    
+  
     return attn_output
 ```
 
 **形状变化：**
+
 ```
 Q × K^T: [B, H, L, D] × [B, H, D, L] → [B, H, L, L]  (注意力权重矩阵)
 attn × V: [B, H, L, L] × [B, H, L, D] → [B, H, L, D]  (加权后的输出)
@@ -138,6 +141,7 @@ attn × V: [B, H, L, L] × [B, H, L, D] → [B, H, L, D]  (加权后的输出)
 多头注意力允许模型在不同的表示子空间中并行学习信息，就像同时从多个角度"关注"输入序列。
 
 **核心思想：**
+
 - 将 Q、K、V 分别投影到多个不同的子空间
 - 在每个子空间独立计算注意力
 - 将所有头的输出拼接后，再进行一次线性变换
@@ -148,32 +152,32 @@ attn × V: [B, H, L, L] × [B, H, L, D] → [B, H, L, D]  (加权后的输出)
 class MultiHeadAttention(nn.Module):
     def __init__(self, hidden_dim=512, num_heads=8):
         self.head_dim = hidden_dim // num_heads  # 每个头的维度
-        
+  
         # 四个投影矩阵
         self.W_q = nn.Linear(hidden_dim, hidden_dim)  # Query 投影
         self.W_k = nn.Linear(hidden_dim, hidden_dim)  # Key 投影
         self.W_v = nn.Linear(hidden_dim, hidden_dim)  # Value 投影
         self.W_o = nn.Linear(hidden_dim, hidden_dim)  # 输出投影
-    
+  
     def forward(self, x_q, x_k, x_v, mask=None):
         # 1. 线性投影
         Q = self.W_q(x_q)
         K = self.W_k(x_k)
         V = self.W_v(x_v)
-        
+  
         # 2. 分割多头 [B, L, D] → [B, H, L, D/H]
         Q = self._split(Q)
         K = self._split(K)
         V = self._split(V)
-        
+  
         # 3. 计算注意力
         attn_output = self.attention(Q, K, V, mask)
-        
+  
         # 4. 拼接多头并输出投影
         attn_output = attn_output.transpose(1, 2).contiguous()
         attn_output = attn_output.view(batch_size, seq_len, hidden_dim)
         output = self.W_o(attn_output)
-        
+  
         return output
 ```
 
@@ -185,7 +189,9 @@ class MultiHeadAttention(nn.Module):
 
 FFN 是一个简单的两层全连接网络，用于对每个位置的表示进行非线性变换。
 
-$$\text{FFN}(x) = \text{ReLU}(xW_1 + b_1)W_2 + b_2$$
+$$
+\text{FFN}(x) = \text{ReLU}(xW_1 + b_1)W_2 + b_2
+$$
 
 ```python
 class FFN(nn.Module):
@@ -213,9 +219,13 @@ class FFN(nn.Module):
 
 **正弦位置编码公式：**
 
-$$PE_{(pos, 2i)} = \sin\left(\frac{pos}{10000^{2i/d_{model}}}\right)$$
+$$
+PE_{(pos, 2i)} = \sin\left(\frac{pos}{10000^{2i/d_{model}}}\right)
+$$
 
-$$PE_{(pos, 2i+1)} = \cos\left(\frac{pos}{10000^{2i/d_{model}}}\right)$$
+$$
+PE_{(pos, 2i+1)} = \cos\left(\frac{pos}{10000^{2i/d_{model}}}\right)
+$$
 
 **代码实现：**
 
@@ -223,23 +233,24 @@ $$PE_{(pos, 2i+1)} = \cos\left(\frac{pos}{10000^{2i/d_{model}}}\right)$$
 class PositionalEncoding(nn.Module):
     def __init__(self, d_model, max_len, device):
         super().__init__()
-        
+  
         # 创建位置编码矩阵
         self.encoding = torch.zeros(max_len, d_model, device=device)
         self.encoding.requires_grad = False  # 不参与训练
-        
+  
         # 位置索引 [0, 1, 2, ..., max_len-1]
         pos = torch.arange(0, max_len, device=device).float().unsqueeze(1)
-        
+  
         # 维度索引
         k = torch.arange(0, d_model / 2, device=device).float()
-        
+  
         # 计算正弦和余弦
         self.encoding[:, 0::2] = torch.sin(pos / (10000 ** (2 * k / d_model)))
         self.encoding[:, 1::2] = torch.cos(pos / (10000 ** (2 * k / d_model)))
 ```
 
 **为什么用正弦/余弦？**
+
 - 可以表示任意长度的序列
 - 相对位置可以通过线性变换得到
 - 值域固定在 [-1, 1]
@@ -275,6 +286,7 @@ class TransformerEmbedding(nn.Module):
 > 📁 文件：`blocks/encoder_block.py`
 
 每个编码器 Block 包含两个子层：
+
 1. **多头自注意力层** (Multi-Head Self-Attention)
 2. **前馈神经网络层** (Feed-Forward Network)
 
@@ -291,7 +303,7 @@ class TransformerEmbedding(nn.Module):
                    │
     ┌──────────────┼──────────────┐
     │              ▼              │
-    │    Dropout + LayerNorm     │◄── 残差连接
+    │    Dropout + LayerNorm      │◄── 残差连接
     │              │              │
     └──────────────┼──────────────┘
                    │
@@ -301,7 +313,7 @@ class TransformerEmbedding(nn.Module):
                    │
     ┌──────────────┼──────────────┐
     │              ▼              │
-    │    Dropout + LayerNorm     │◄── 残差连接
+    │    Dropout + LayerNorm      │◄── 残差连接
     │              │              │
     └──────────────┼──────────────┘
                    │
@@ -317,19 +329,19 @@ def forward(self, x):
     # 1. 自注意力
     x_origin = x
     x = self.attention(x, x, x)  # Q=K=V=x (自注意力)
-    
+  
     # 2. 残差连接 + 层归一化
     x = self.dropout1(x)
     x = self.norm1(x + x_origin)
-    
+  
     # 3. 前馈网络
     x_origin = x
     x = self.ffn(x)
-    
+  
     # 4. 残差连接 + 层归一化
     x = self.dropout2(x)
     x = self.norm2(x + x_origin)
-    
+  
     return x
 ```
 
@@ -342,7 +354,7 @@ def forward(self, x):
 解码器 Block 比编码器多了一个 **Cross-Attention** 层，用于关注编码器的输出：
 
 ```
-         ┌───────────────────┐
+┌───────────────────┐
          │    目标输入 x     │
          └─────────┬─────────┘
                    │
@@ -379,6 +391,7 @@ def forward(self, x):
 ```
 
 **关键区别：**
+
 - **Masked Self-Attention**: 使用下三角掩码，防止模型"偷看"未来的 token
 - **Cross-Attention**: Query 来自解码器，Key 和 Value 来自编码器输出
 
@@ -389,19 +402,19 @@ def forward(self, x, enc, trg_mask):
     x = self.self_attention(x, x, x, mask=trg_mask)  # 添加掩码
     x = self.dropout1(x)
     x = self.norm1(x + x_origin)
-    
+  
     # 2. Cross-Attention（编码器-解码器注意力）
     x_origin = x
     x = self.enc_dec_attention(x_q=x, x_k=enc, x_v=enc)  # Q来自x，K/V来自enc
     x = self.dropout2(x)
     x = self.norm2(x + x_origin)
-    
+  
     # 3. 前馈网络
     x_origin = x
     x = self.ffn(x)
     x = self.dropout3(x)
     x = self.norm3(x + x_origin)
-    
+  
     return x
 ```
 
@@ -420,19 +433,19 @@ class Transformer(nn.Module):
         self.encoder = Encoder(...)
         # 解码器
         self.decoder = Decoder(...)
-    
+  
     def forward(self, src, trg):
         # 1. 生成目标序列的下三角掩码
         mask = self.make_mask(trg)
-        
+  
         # 2. 编码源序列
         enc_src = self.encoder(src)
-        
+  
         # 3. 解码目标序列
         output = self.decoder(trg, enc_src, mask)
-        
+  
         return output
-    
+  
     def make_mask(self, trg):
         """生成下三角掩码，防止模型看到未来的 token"""
         trg_len = trg.shape[1]
@@ -458,6 +471,7 @@ python train.py
 ```
 
 训练过程会：
+
 1. 构建词表并保存到 `vocab.json`
 2. 使用内置的英译中数据集进行训练
 3. 将模型保存到 `transformer.pth`
@@ -482,17 +496,18 @@ Output chinese: <bos>早上好！<eos>
 
 > 📁 文件：`config.py`
 
-| 参数 | 默认值 | 说明 |
-|------|--------|------|
-| `d_model` | 512 | 模型/嵌入维度 |
-| `n_head` | 8 | 多头注意力的头数 |
-| `max_len` | 40 | 最大序列长度 |
-| `ffn_hidden` | 1024 | FFN 隐藏层维度 |
-| `n_blocks` | 2 | 编码器/解码器的层数 |
-| `drop_prob` | 0.1 | Dropout 概率 |
-| `batch_size` | 20 | 批次大小 |
-| `lr` | 0.001 | 学习率 |
-| `epochs` | 200 | 训练轮数 |
+
+| 参数         | 默认值 | 说明                |
+| ------------ | ------ | ------------------- |
+| `d_model`    | 512    | 模型/嵌入维度       |
+| `n_head`     | 8      | 多头注意力的头数    |
+| `max_len`    | 40     | 最大序列长度        |
+| `ffn_hidden` | 1024   | FFN 隐藏层维度      |
+| `n_blocks`   | 2      | 编码器/解码器的层数 |
+| `drop_prob`  | 0.1    | Dropout 概率        |
+| `batch_size` | 20     | 批次大小            |
+| `lr`         | 0.001  | 学习率              |
+| `epochs`     | 200    | 训练轮数            |
 
 ---
 
@@ -513,6 +528,7 @@ tensor([0, 45, 78, 12, 1, 2, 2, ...])
 ```
 
 **特殊 Token：**
+
 - `<bos>`: 序列开始标记 (Beginning of Sequence)
 - `<eos>`: 序列结束标记 (End of Sequence)
 - `<pad>`: 填充标记 (Padding)
@@ -545,7 +561,7 @@ for _ in range(max_len - 1):
     output = model(input_data, target)
     next_token = output[:, -1, :].argmax(dim=-1)  # 取最后一个位置的预测
     target = torch.cat([target, next_token.unsqueeze(1)], dim=1)
-    
+  
     if next_token.item() == vocab['<eos>']:
         break
 ```
