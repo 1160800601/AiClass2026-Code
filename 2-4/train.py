@@ -178,8 +178,8 @@ def main():
     train_dataset = TensorDataset(train_tensor)
     val_dataset = TensorDataset(val_tensor)
     
-    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-    val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
+    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, pin_memory=True)
+    val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, pin_memory=True)
     
     # ==================== 初始化模型 ====================
     print('\n[3/4] 初始化模型...')
@@ -215,6 +215,11 @@ def main():
     print(f'  Learning Rate: {lr}')
     print('-' * 60)
     
+    # - 遍历 epochs
+    # - 对于每个 batch：前向传播、计算损失、反向传播、更新参数
+    # - 每个 epoch 结束后调用 evaluate() 评估验证集
+    # - 使用 writer.add_scalars() 记录 Loss 和 Perplexity
+    # - 保存最佳模型到 model_file
     start_time = time.time()
     best_val_loss = float('inf')
     global_step = 0
