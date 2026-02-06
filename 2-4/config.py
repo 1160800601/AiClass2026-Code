@@ -15,8 +15,11 @@ drop_prob = 0.1      # Dropout 概率
 # ==================== 训练参数 ====================
 batch_size = 16      # 批次大小
 lr = 3e-4            # 学习率（GPT 常用的学习率）
-epochs = 40         # 训练轮数
+epochs = 100         # 训练轮数
 log_interval = 1     # 每隔多少个 epoch 打印一次日志
+
+# ==================== 运行标识 ====================
+run_name = 'rzb_run1'    # 本次运行名称（用于模型/日志文件名）
 
 # ==================== 数据处理参数 ====================
 min_sample_length = 64  # 最小样本长度（不足时继续加入下一句）
@@ -25,9 +28,9 @@ val_ratio = 0.1         # 验证集比例
 min_line_length = 10    # 最小行长度（低于此长度的行会被过滤）
 
 # ==================== 文件路径 ====================
-data_dir = 'data'
+data_dir = 'data_rzb'
 train_file = f'{data_dir}/train.txt'
 val_file = f'{data_dir}/val.txt'
 vocab_file = f'{data_dir}/vocab.json'
-model_file = 'gpt.pth'
-tensorboard_dir = 'runs'
+model_file = f'{run_name}_gpt.pth'
+tensorboard_dir = f'runs/{run_name}'
