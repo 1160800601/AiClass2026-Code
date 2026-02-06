@@ -45,10 +45,24 @@ class GPT(nn.Module):
         super().__init__()
         # TODO: 初始化
         # 1. 保存 pad_idx 和 device
+        self.pad_idx = pad_idx
+        self.device = device
         # 2. GPT 嵌入层
+        self.emb = GPTEmbedding(vocab_size=vocab_size, d_model=d_model, \
+            max_len=max_len, drop_prob=drop_prob, pad_idx=pad_idx, device=device)
         # 3. GPT Blocks 堆叠 (nn.ModuleList)
+        block_list = []
+        for _ in range(n_blocks):
+            block_list.append(GPTBlock(d_model=d_model,
+                                           ffn_hidden=ffn_hidden,
+                                           n_head=n_head,
+                                           drop_prob=drop_prob))
+        self.layers = nn.ModuleList(block_list)
+        
         # 4. 最终的 LayerNorm
+        self.final_ln = nn.LayerNorm(d_model)
         # 5. 输出层: Linear(d_model, vocab_size)
+        self.output = nn.Linear(d_model, vocab_size)
         
     def forward(self, x):
         """
@@ -58,13 +72,28 @@ class GPT(nn.Module):
         Returns:
             logits: 输出的 logits，形状为 [batch_size, seq_len, vocab_size]
         """
-        # TODO: 实现前向传播
+        # 实现前向传播
         # 1. 生成因果掩码
+        L = x.size(1)
+        mask = torch.triu(
+            torch.full((L, L), float('-inf'), device=x.device),
+            diagonal=1
+        )
+        
         # 2. 通过嵌入层
+        x = self.emb(x)
+        
         # 3. 通过所有 GPT Blocks
+        for layer in self.layers:
+            x = layer(x, mask)
+            
         # 4. 最终的 LayerNorm
+        x = self.final_ln(x)
+        
         # 5. 输出层
-        pass
+        x = self.output(x)
+        return x
+        
 
     def make_causal_mask(self, x):
         """生成因果掩码（下三角矩阵）
@@ -84,11 +113,15 @@ class GPT(nn.Module):
         Returns:
             因果掩码，形状为 [batch_size, seq_len, seq_len]
         """
-        # TODO: 生成因果掩码
+        # 生成因果掩码
         # 1. 获取 batch_size 和 seq_len
+        batch_size, seq_len = x.size(0), x.size(1)
+        
         # 2. 创建下三角矩阵: torch.tril(torch.ones(...))
+        mask = torch.tril(torch.ones(seq_len, seq_len, device=x.device))
+        
         # 3. 扩展到 batch 维度
-        pass
+        mask = mask.unsqueeze(0).expand(batch_size, -1, -1)
 
     @torch.no_grad()
     def generate(self, idx, max_new_tokens, temperature=1.0, top_k=None, eos_token=None):
