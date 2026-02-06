@@ -28,7 +28,7 @@ class FFN(nn.Module):
         super().__init__()
         self.linear1 = nn.Linear(d_model, hidden)
         self.linear2 = nn.Linear(hidden, d_model)
-        self.relu = nn.ReLU()
+        self.relu = nn.GELU()
         self.dropout = nn.Dropout(p=drop_prob)
 
     def forward(self, x):

@@ -51,7 +51,7 @@ class GPTBlock(nn.Module):
         self.ln2 = nn.LayerNorm(d_model)
         
         # 5. FFN
-        self.ffn = FFN(d_model=d_model, hidden=d_model*4, drop_prob=drop_prob)
+        self.ffn = FFN(d_model=d_model, hidden=ffn_hidden, drop_prob=drop_prob)
         
         # 6. 第二个 Dropout
         self.dropout2 = nn.Dropout(p=drop_prob)
@@ -72,7 +72,7 @@ class GPTBlock(nn.Module):
         
         # 2. LayerNorm -> Self-Attention -> Dropout
         x = self.ln1(x)
-        x = self.self_attention(x)
+        x = self.self_attention(x, mask)
         x = self.dropout1(x)
         
         # 3. 残差连接

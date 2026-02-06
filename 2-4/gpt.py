@@ -74,11 +74,7 @@ class GPT(nn.Module):
         """
         # 实现前向传播
         # 1. 生成因果掩码
-        L = x.size(1)
-        mask = torch.triu(
-            torch.full((L, L), float('-inf'), device=x.device),
-            diagonal=1
-        )
+        mask = self.make_causal_mask(x)
         
         # 2. 通过嵌入层
         x = self.emb(x)
@@ -122,6 +118,7 @@ class GPT(nn.Module):
         
         # 3. 扩展到 batch 维度
         mask = mask.unsqueeze(0).expand(batch_size, -1, -1)
+        return mask
 
     @torch.no_grad()
     def generate(self, idx, max_new_tokens, temperature=1.0, top_k=None, eos_token=None):
