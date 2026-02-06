@@ -214,11 +214,11 @@ def main():
     """主函数：执行完整的数据处理流程"""
     
     # 确保数据目录存在
-    data_dir = '2-4/data'
+    data_dir = 'data_rzb'
     os.makedirs(data_dir, exist_ok=True)
     
     # 原始数据路径
-    raw_file = os.path.join(data_dir, 'liwengduiyun.txt')
+    raw_file = os.path.join(data_dir, 'rzb.txt')
     
     print('=' * 50)
     print('GPT 数据预处理')
