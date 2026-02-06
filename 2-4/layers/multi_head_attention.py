@@ -57,6 +57,7 @@ class MultiHeadAttention(nn.Module):
         tensor = tensor.view(batch_size, length, self.n_head, self.head_dim)
         # 2. 转置: [batch, seq_len, n_head, head_dim] -> [batch, n_head, seq_len, head_dim]
         tensor = tensor.transpose(1, 2)
+        return tensor
 
     def forward(self, x, mask=None):
         """
@@ -92,7 +93,7 @@ class MultiHeadAttention(nn.Module):
         # 5. 合并多头并进行输出投影
         attn_output = attn_output.transpose(1, 2).contiguous()
         
-        attn_output = attn_output.view(batch_size, seq_len, self.hidden_dim)
+        attn_output = attn_output.view(batch_size, seq_len, self.d_model)
         
         output = self.W_o(attn_output)
         

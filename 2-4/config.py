@@ -25,9 +25,9 @@ val_ratio = 0.1         # 验证集比例
 min_line_length = 10    # 最小行长度（低于此长度的行会被过滤）
 
 # ==================== 文件路径 ====================
-data_dir = '2-4/data'
+data_dir = 'data'
 train_file = f'{data_dir}/train.txt'
 val_file = f'{data_dir}/val.txt'
 vocab_file = f'{data_dir}/vocab.json'
-model_file = '2-4/gpt.pth'
-tensorboard_dir = '2-4/runs'
+model_file = 'gpt.pth'
+tensorboard_dir = 'runs'

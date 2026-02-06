@@ -1,4 +1,4 @@
-"""
+﻿"""
 GPT 训练脚本
 
 从预处理好的数据文件中读取训练集和验证集，
@@ -215,14 +215,55 @@ def main():
     print(f'  Learning Rate: {lr}')
     print('-' * 60)
     
-    # TODO: 实现训练循环
-    # 提示：
-    # - 遍历 epochs
-    # - 对于每个 batch：前向传播、计算损失、反向传播、更新参数
-    # - 每个 epoch 结束后调用 evaluate() 评估验证集
-    # - 使用 writer.add_scalars() 记录 Loss 和 Perplexity
-    # - 保存最佳模型到 model_file
-    
+    start_time = time.time()
+    best_val_loss = float('inf')
+    global_step = 0
+    for epoch in range(1, epochs + 1):
+        model.train()
+        epoch_loss = 0.0
+        epoch_tokens = 0
+
+        for batch in train_loader:
+            x = batch[0].to(device, non_blocking=True)
+            input_ids = x[:, :-1]
+            target_ids = x[:, 1:]
+
+            logits = model(input_ids)
+            loss = criterion(
+                logits.reshape(-1, len(vocab)),
+                target_ids.reshape(-1)
+            )
+
+            optimizer.zero_grad(set_to_none=True)
+            loss.backward()
+            optimizer.step()
+
+            with torch.no_grad():
+                num_tokens = (target_ids != vocab['<pad>']).sum().item()
+            epoch_loss += loss.item() * num_tokens
+            epoch_tokens += num_tokens
+            global_step += 1
+
+        train_loss = epoch_loss / epoch_tokens if epoch_tokens > 0 else 0
+        train_ppl = compute_perplexity(train_loss)
+        val_loss, val_ppl = evaluate(model, val_loader, criterion, vocab, device)
+
+        if writer is not None:
+            writer.add_scalars('Loss', {'train': train_loss, 'val': val_loss}, epoch)
+            writer.add_scalars('Perplexity', {'train': train_ppl, 'val': val_ppl}, epoch)
+
+        if epoch % log_interval == 0:
+            elapsed = time.time() - start_time
+            print(
+                f'Epoch {epoch}/{epochs} | '
+                f'train_loss {train_loss:.4f} | val_loss {val_loss:.4f} | '
+                f'val_ppl {val_ppl:.2f} | time {elapsed:.1f}s'
+            )
+
+        if val_loss < best_val_loss:
+            best_val_loss = val_loss
+            torch.save(model.state_dict(), model_file)
+
     # ==================== 训练完成 ====================
     if writer is not None:
         writer.close()
@@ -243,3 +284,5 @@ if __name__ == '__main__':
         device = torch.device('cpu')
     
     main()
+
+

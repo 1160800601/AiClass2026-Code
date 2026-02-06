@@ -43,7 +43,7 @@ class GPT(nn.Module):
             device: 计算设备
         """
         super().__init__()
-        # TODO: 初始化
+        # 初始化
         # 1. 保存 pad_idx 和 device
         self.pad_idx = pad_idx
         self.device = device
