@@ -31,7 +31,7 @@ class GPTEmbedding(nn.Module):
             device: 计算设备
         """
         super().__init__()
-        # TODO: 初始化
+        # 初始化
         # 1. 保存 device
         self.device = device
         # 2. Token 嵌入层:
@@ -49,7 +49,7 @@ class GPTEmbedding(nn.Module):
         Returns:
             嵌入表示，形状为 [batch_size, seq_len, d_model]
         """
-        # TODO: 实现嵌入层前向传播
+        # 实现嵌入层前向传播
         # 1. 计算 token 嵌入
         tok_emb = self.token_embedding(x)
         # 2. 生成位置索引 [0, 1, 2, ..., seq_len-1]

@@ -25,6 +25,7 @@ class MultiHeadAttention(nn.Module):
             d_model: 模型的隐藏维度
             n_head: 注意力头的数量
         """
+        # 初始化
         super().__init__()
         # 1. 保存 d_model, n_head, head_dim = d_model // n_head
         assert d_model % n_head == 0, f"d_model={d_model} 必须能被 n_head={n_head} 整除"
@@ -50,6 +51,7 @@ class MultiHeadAttention(nn.Module):
         Returns:
             形状为 [batch_size, n_head, seq_len, head_dim]
         """
+        # 实现多头拆分
         batch_size, length, d_model = tensor.size()
         # 1. 重塑维度: [batch, seq_len, d_model] -> [batch, seq_len, n_head, head_dim]
         tensor = tensor.view(batch_size, length, self.n_head, self.head_dim)
@@ -67,6 +69,7 @@ class MultiHeadAttention(nn.Module):
         Returns:
             输出张量，形状为 [batch_size, seq_len, d_model]
         """
+        # 实现多头注意力前向传播
         batch_size, seq_len, _ = x.shape
         
         # 1. 线性投影生成 Q、K、V

@@ -24,6 +24,7 @@ class FFN(nn.Module):
             hidden: 隐藏层维度（通常是 d_model 的 4 倍）
             drop_prob: Dropout 概率
         """
+        # 定义网络层
         super().__init__()
         self.linear1 = nn.Linear(d_model, hidden)
         self.linear2 = nn.Linear(hidden, d_model)
@@ -38,6 +39,7 @@ class FFN(nn.Module):
         Returns:
             输出张量，形状为 [batch_size, seq_len, d_model]
         """
+        # 实现前向传播
         x = self.linear1(x)
         x = self.relu(x)
         x = self.dropout(x)

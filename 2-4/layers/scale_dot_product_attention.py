@@ -29,6 +29,7 @@ class ScaleDotProductAttention(nn.Module):
         Returns:
             注意力加权后的输出，形状为 [batch_size, num_heads, seq_len, head_dim]
         """
+        # 实现缩放点积注意力
         batch_size, head, length, d_tensor = K.size()
         
         # 1. 计算注意力分数矩阵: Q @ K^T / sqrt(head_dim)
