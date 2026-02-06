@@ -33,9 +33,13 @@ class GPTEmbedding(nn.Module):
         super().__init__()
         # TODO: 初始化
         # 1. 保存 device
+        self.device = device
         # 2. Token 嵌入层:
+        self.token_embedding = nn.Embedding(vocab_size, d_model, padding_idx=pad_idx)
         # 3. 位置嵌入层
+        self.position_embedding = nn.Embedding(max_len, d_model)
         # 4. Dropout 层
+        self.dropout = nn.Dropout(p=drop_prob)
 
     def forward(self, x):
         """
@@ -47,8 +51,14 @@ class GPTEmbedding(nn.Module):
         """
         # TODO: 实现嵌入层前向传播
         # 1. 计算 token 嵌入
+        tok_emb = self.token_embedding(x)
         # 2. 生成位置索引 [0, 1, 2, ..., seq_len-1]
+        batch_size, seq_len = x.size()
+        pos = torch.arange(seq_len, device=self.device).unsqueeze(0).expand(batch_size, seq_len)
         # 3. 计算位置嵌入
+        pos_emb = self.position_embedding(pos)
         # 4. 将 token 嵌入和位置嵌入相加
+        x = tok_emb + pos_emb
         # 5. 应用 Dropout
-        pass
+        x = self.dropout(x)
+        return x

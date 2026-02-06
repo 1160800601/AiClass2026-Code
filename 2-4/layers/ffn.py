@@ -25,7 +25,6 @@ class FFN(nn.Module):
             drop_prob: Dropout 概率
         """
         super().__init__()
-        # TODO: 定义网络层
         self.linear1 = nn.Linear(d_model, hidden)
         self.linear2 = nn.Linear(hidden, d_model)
         self.relu = nn.ReLU()
@@ -39,7 +38,6 @@ class FFN(nn.Module):
         Returns:
             输出张量，形状为 [batch_size, seq_len, d_model]
         """
-        # TODO: 实现前向传播
         x = self.linear1(x)
         x = self.relu(x)
         x = self.dropout(x)

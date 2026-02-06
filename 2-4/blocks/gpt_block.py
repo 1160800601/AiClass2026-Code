@@ -37,7 +37,6 @@ class GPTBlock(nn.Module):
             drop_prob: Dropout 概率
         """
         super().__init__()
-        # TODO: 初始化
         # 1. 第一个 LayerNorm（用于 Self-Attention 之前）
         self.ln1 = nn.LayerNorm(d_model)
         
@@ -65,7 +64,6 @@ class GPTBlock(nn.Module):
         Returns:
             输出张量，形状为 [batch_size, seq_len, d_model]
         """
-        # TODO: 实现 Pre-LN 结构的前向传播
         # Self-Attention 子层:
         # 1. 保存输入用于残差连接
         x_origin = x
@@ -88,4 +86,5 @@ class GPTBlock(nn.Module):
         x = self.dropout2(x)
         # 6. 残差连接
         x += x_origin
+        return x
         
