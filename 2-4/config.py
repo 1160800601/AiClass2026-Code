@@ -19,7 +19,7 @@ epochs = 100         # 训练轮数
 log_interval = 1     # 每隔多少个 epoch 打印一次日志
 
 # ==================== 运行标识 ====================
-run_name = 'rzb_run1'    # 本次运行名称（用于模型/日志文件名）
+run_name = 'duiyun'    # 本次运行名称（用于模型/日志文件名）
 
 # ==================== 数据处理参数 ====================
 min_sample_length = 64  # 最小样本长度（不足时继续加入下一句）
@@ -28,7 +28,7 @@ val_ratio = 0.1         # 验证集比例
 min_line_length = 10    # 最小行长度（低于此长度的行会被过滤）
 
 # ==================== 文件路径 ====================
-data_dir = 'data_rzb'
+data_dir = 'data'
 train_file = f'{data_dir}/train.txt'
 val_file = f'{data_dir}/val.txt'
 vocab_file = f'{data_dir}/vocab.json'

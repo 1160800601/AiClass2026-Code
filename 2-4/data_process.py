@@ -1,4 +1,4 @@
-"""
+﻿"""
 GPT 数据预处理脚本
 
 独立运行，处理原始文本数据并保存结果。
@@ -21,10 +21,23 @@ import os
 from config import min_sample_length, sentence_stride, val_ratio, min_line_length
 
 
-def read_file(file_path):
-    """读取原始文本文件"""
+def read_file(file_path, max_lines=None):
+    """读取原始文本文件
+    
+    Args:
+        file_path: 文件路径
+        max_lines: 最多读取的行数，为 None 时读取全部
+    """
     with open(file_path, 'r', encoding='utf-8') as f:
-        return f.read()
+        if max_lines is None:
+            return f.read()
+        lines = []
+        for _ in range(max_lines):
+            line = f.readline()
+            if not line:
+                break
+            lines.append(line)
+        return ''.join(lines)
 
 
 def clean_text(text):
@@ -214,11 +227,11 @@ def main():
     """主函数：执行完整的数据处理流程"""
     
     # 确保数据目录存在
-    data_dir = 'data_rzb'
+    data_dir = 'data_poem'
     os.makedirs(data_dir, exist_ok=True)
     
     # 原始数据路径
-    raw_file = os.path.join(data_dir, 'rzb.txt')
+    raw_file = os.path.join(data_dir, 'train.csv')
     
     print('=' * 50)
     print('GPT 数据预处理')
@@ -226,9 +239,11 @@ def main():
     
     # 1. 读取原始数据
     print('\n[1/6] 读取原始数据...')
-    raw_text = read_file(raw_file)
+    max_raw_lines = 5000
+    raw_text = read_file(raw_file, max_lines=max_raw_lines)
     raw_char_count = len(raw_text)
     print(f'  原始字符数: {raw_char_count}')
+    print(f'  只取原始数据前{max_raw_lines} 行')
     
     # 2. 通用清洗
     print('\n[2/6] 清洗文本...')
